@@ -28,7 +28,7 @@
     <div id="mappa"></div>
 
     <script>
-        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE, CAZZO
+        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE, CAZZAROLA
         const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
 
         // 1. Inizializza la mappa Leaflet
@@ -52,13 +52,12 @@
             divRisultato.innerText = "Ricerca località in corso...";
 
             try {
-                // 1. Cerca Coordinate Partenza (Utilizza l'endpoint strutturato con versione v2)
-                const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
-                const resP1 = await fetch(urlP1);
+                // Generazione dei parametri in formato standard per aggirare i blocchi CORS
+                const paramsSearch1 = new URLSearchParams({ key: TOMTOM_KEY, limit: 1 });
+                const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?${paramsSearch1.toString()}`;
                 
-                if (!resP1.ok) {
-                    throw new Error(`Ricerca partenza fallita con stato: ${resP1.status}`);
-                }
+                const resP1 = await fetch(urlP1);
+                if (!resP1.ok) throw new Error(`TomTom Geocode Partenza KO: ${resP1.status}`);
                 const dataP1 = await resP1.json();
                 
                 if (!dataP1.results || dataP1.results.length === 0) {
@@ -68,13 +67,11 @@
                 const lat1 = dataP1.results[0].position.lat;
                 const lon1 = dataP1.results[0].position.lon;
 
-                // 2. Cerca Coordinate Arrivo (Utilizza l'endpoint strutturato con versione v2)
-                const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
-                const resP2 = await fetch(urlP2);
+                const paramsSearch2 = new URLSearchParams({ key: TOMTOM_KEY, limit: 1 });
+                const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?${paramsSearch2.toString()}`;
                 
-                if (!resP2.ok) {
-                    throw new Error(`Ricerca arrivo fallita con stato: ${resP2.status}`);
-                }
+                const resP2 = await fetch(urlP2);
+                if (!resP2.ok) throw new Error(`TomTom Geocode Arrivo KO: ${resP2.status}`);
                 const dataP2 = await resP2.json();
                 
                 if (!dataP2.results || dataP2.results.length === 0) {
@@ -86,14 +83,19 @@
 
                 divRisultato.innerText = "Calcolo percorso camion in corso...";
 
-                // 3. Richiesta di Calcolo Percorso Camion (Utilizza l'endpoint con versione v1)
-                const urlRouting = `https://tomtom.com{lat1},${lon1}:${lat2},${lon2}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4.0`;
+                // Configurazione parametri veicolo pesante nell'oggetto URL ufficiale
+                const paramsRouting = new URLSearchParams({
+                    key: TOMTOM_KEY,
+                    travelMode: 'truck',
+                    vehicleMaxSpeed: 90,
+                    vehicleWeight: 18000,
+                    vehicleHeight: 4.0
+                });
+
+                const urlRouting = `https://tomtom.com{lat1},${lon1}:${lat2},${lon2}/json?${paramsRouting.toString()}`;
                 const resRouting = await fetch(urlRouting);
                 
-                if (!resRouting.ok) {
-                    throw new Error(`Calcolo percorso fallito con stato: ${resRouting.status}`);
-                }
-
+                if (!resRouting.ok) throw new Error(`TomTom Routing KO: ${resRouting.status}`);
                 const dataRouting = await resRouting.json();
 
                 if (dataRouting.routes && dataRouting.routes.length > 0) {
@@ -118,12 +120,12 @@
                     stratoPercorso = L.polyline(puntiLinea, {color: '#e67e22', weight: 6}).addTo(map);
                     map.fitBounds(stratoPercorso.getBounds());
                 } else {
-                    divRisultato.innerText = "Nessun percorso stradale trovato.";
+                    divRisultato.innerText = "Nessun percorso trovato.";
                 }
 
             } catch (error) {
                 divRisultato.innerText = "Errore durante il calcolo.";
-                alert("Dettaglio Errore: " + error.message);
+                alert("Dettaglio Tecnico: " + error.message);
             }
         }
     </script>
