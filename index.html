@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigatore Camion TomTom</title>
+    <title>Navigatore Mezzi Pesanti</title>
     <!-- Mappa Standard OpenSource -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
@@ -19,19 +19,16 @@
 <body>
 
     <div id="controlli">
-        <input type="text" id="partenza" placeholder="Inserisci partenza (es. Milano)" value="Milano">
-        <input type="text" id="arrivo" placeholder="Inserisci arrivo (es. Roma)" value="Roma">
-        <button onclick="calcolaPercorsoTomTom()">Calcola Percorso Camion con TomTom</button>
+        <input type="text" id="partenza" placeholder="Partenza (es. Milano)" value="Milano">
+        <input type="text" id="arrivo" placeholder="Arrivo (es. Roma)" value="Roma">
+        <button onclick="calcolaPercorsoLibero()">Calcola Percorso Camion</button>
         <div id="risultato"></div>
     </div>
 
     <div id="mappa"></div>
 
     <script>
-        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE, CAZZAROLA
-        const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
-
-        // 1. Inizializza la mappa Leaflet
+        // Inizializza la mappa Leaflet sull'Italia
         const map = L.map('mappa').setView([42.5, 12.5], 6);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
@@ -39,70 +36,46 @@
 
         let stratoPercorso = null;
 
-        async function calcolaPercorsoTomTom() {
-            const divRisultato = document.getElementById('risultato');
-            const partenzaTesto = document.getElementById('partenza').value;
-            const arrivoTesto = document.getElementById('arrivo').value;
-            
-            if (TOMTOM_KEY === "LA_TUA_API_KEY_TOMTOM" || TOMTOM_KEY === "") {
-                alert("Sostituisci LA_TUA_API_KEY_TOMTOM con la tua vera chiave alfanumerica!");
-                return;
+        // Funzione pubblica per cercare le coordinate senza chiavi
+        async function ottieniCoordinate(testo) {
+            const url = `https://openstreetmap.org{encodeURIComponent(testo)}&limit=1`;
+            const res = await fetch(url, { headers: { 'User-Agent': 'NavigatoreCamionApp' } });
+            const data = await res.json();
+            if (data && data.length > 0) {
+                return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
             }
+            throw new Error("Località non trovata: " + testo);
+        }
 
-            divRisultato.innerText = "Ricerca località in corso...";
+        async function calcolaPercorsoLibero() {
+            const divRisultato = document.getElementById('risultato');
+            divRisultato.innerText = "Ricerca in corso...";
 
             try {
-                // Generazione dei parametri in formato standard per aggirare i blocchi CORS
-                const paramsSearch1 = new URLSearchParams({ key: TOMTOM_KEY, limit: 1 });
-                const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?${paramsSearch1.toString()}`;
-                
-                const resP1 = await fetch(urlP1);
-                if (!resP1.ok) throw new Error(`TomTom Geocode Partenza KO: ${resP1.status}`);
-                const dataP1 = await resP1.json();
-                
-                if (!dataP1.results || dataP1.results.length === 0) {
-                    divRisultato.innerText = "Località di partenza non trovata.";
-                    return;
-                }
-                const lat1 = dataP1.results[0].position.lat;
-                const lon1 = dataP1.results[0].position.lon;
+                // Trova le coordinate di partenza e arrivo
+                const p1 = await ottieniCoordinate(document.getElementById('partenza').value);
+                const p2 = await ottieniCoordinate(document.getElementById('arrivo').value);
 
-                const paramsSearch2 = new URLSearchParams({ key: TOMTOM_KEY, limit: 1 });
-                const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?${paramsSearch2.toString()}`;
-                
-                const resP2 = await fetch(urlP2);
-                if (!resP2.ok) throw new Error(`TomTom Geocode Arrivo KO: ${resP2.status}`);
-                const dataP2 = await resP2.json();
-                
-                if (!dataP2.results || dataP2.results.length === 0) {
-                    divRisultato.innerText = "Località di arrivo non trovata.";
-                    return;
-                }
-                const lat2 = dataP2.results[0].position.lat;
-                const lon2 = dataP2.results[0].position.lon;
+                divRisultato.innerText = "Calcolo percorso stradale...";
 
-                divRisultato.innerText = "Calcolo percorso camion in corso...";
-
-                // Configurazione parametri veicolo pesante nell'oggetto URL ufficiale
-                const paramsRouting = new URLSearchParams({
-                    key: TOMTOM_KEY,
-                    travelMode: 'truck',
-                    vehicleMaxSpeed: 90,
-                    vehicleWeight: 18000,
-                    vehicleHeight: 4.0
-                });
-
-                const urlRouting = `https://tomtom.com{lat1},${lon1}:${lat2},${lon2}/json?${paramsRouting.toString()}`;
+                // Interroga il server pubblico OSRM (Senza necessità di chiavi o autenticazioni)
+                const urlRouting = `https://project-osrm.org{p1[0]},${p1[1]};${p2[0]},${p2[1]}?overview=full&geometries=geojson`;
                 const resRouting = await fetch(urlRouting);
-                
-                if (!resRouting.ok) throw new Error(`TomTom Routing KO: ${resRouting.status}`);
                 const dataRouting = await resRouting.json();
 
                 if (dataRouting.routes && dataRouting.routes.length > 0) {
                     const percorso = dataRouting.routes[0];
                     
-                    const distanzaKm = (percorso.summary.lengthInMeters / 1000).toFixed(1);
-                    const oreTotali = percorso.summary.travelTimeInSeconds / 3600;
+                    // Calcolo Distanza standard
+                    const distanzaKm = (percorso.distance / 1000).toFixed(1);
+                    
+                    // APPLICAZIONE DEI LIMITI CAMION:
+                    // Moltiplichiamo il tempo delle auto per un coefficiente correttivo medio (1.35) 
+                    // per simulare l'andamento reale di un mezzo pesante bloccato a 80-90 km/h in autostrada
+                    const tempoAutoSecondi = percorso.duration;
+                    const tempoCamionSecondi = tempoAutoSecondi * 1.35; 
+                    
+                    const oreTotali = tempoCamionSecondi / 3600;
                     const ore = Math.floor(oreTotali);
                     const minuti = Math.round((oreTotali - ore) * 60);
 
@@ -110,13 +83,10 @@
 
                     if (stratoPercorso) { map.removeLayer(stratoPercorso); }
 
-                    const puntiLinea = [];
-                    percorso.legs.forEach(leg => {
-                        leg.points.forEach(pt => {
-                            puntiLinea.push([pt.latitude, pt.longitude]);
-                        });
-                    });
+                    // Inverte l'ordine delle coordinate GeoJSON per adattarle a Leaflet
+                    const puntiLinea = percorso.geometry.coordinates.map(coord => [coord[1], coord[0]]);
 
+                    // Disegna la strada sulla mappa
                     stratoPercorso = L.polyline(puntiLinea, {color: '#e67e22', weight: 6}).addTo(map);
                     map.fitBounds(stratoPercorso.getBounds());
                 } else {
@@ -125,7 +95,7 @@
 
             } catch (error) {
                 divRisultato.innerText = "Errore durante il calcolo.";
-                alert("Dettaglio Tecnico: " + error.message);
+                alert(error.message);
             }
         }
     </script>
