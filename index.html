@@ -10,7 +10,7 @@
     <style>
         body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
         #controlli { padding: 15px; background: #2c3e50; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1000; }
-        #mappa { flex-grow: 1; width: 100%; }
+        #mappa { flex-grow: 1; width: 100%; min-height: 300px; background: #eee; }
         input { width: 95%; padding: 8px; margin-bottom: 8px; border: none; border-radius: 4px; }
         button { background: #e67e22; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%; font-size: 1em; }
         #risultato { margin-top: 12px; font-size: 1.1em; font-weight: bold; color: #f1c40f; text-align: center; }
@@ -29,9 +29,9 @@
 
     <script>
         // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE
-        const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
+        const TOMTOM_KEY = "LA_TUA_API_KEY_TOMTOM"; 
 
-        // Inizializza la mappa Leaflet sull'Italia
+        // 1. Inizializza la mappa Leaflet
         const map = L.map('mappa').setView([42.5, 12.5], 6);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
@@ -39,56 +39,77 @@
 
         let stratoPercorso = null;
 
-        // Funzione per cercare le coordinate con gestione errori avanzata
-        async function cercaCoordinate(testo) {
-            const url = `https://tomtom.com{encodeURIComponent(testo)}.json?key=${TOMTOM_KEY}&limit=1`;
-            const response = await fetch(url, { method: 'GET', mode: 'cors' });
-            
-            if (!response.ok) {
-                throw new Error(`Errore di connessione a TomTom (Codice: ${response.status}). Verifica se la tua chiave API è valida.`);
-            }
-            
-            const data = await response.json();
-            if (data.results && data.results.length > 0) {
-                const pos = data.results[0].position; // Corretto accesso all'array dei risultati
-                return [pos.lat, pos.lon];
-            }
-            throw new Error("Località non trovata: " + testo);
-        }
-
         async function calcolaPercorsoTomTom() {
             const divRisultato = document.getElementById('risultato');
-            divRisultato.innerText = "Calcolo in corso con parametri camion...";
+            const partenzaTesto = document.getElementById('partenza').value;
+            const arrivoTesto = document.getElementById('arrivo').value;
+            
+            if (TOMTOM_KEY === "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK" || TOMTOM_KEY === "") {
+                alert("Sostituisci LA_TUA_API_KEY_TOMTOM con la tua vera chiave alfanumerica!");
+                return;
+            }
+
+            divRisultato.innerText = "Ricerca località in corso...";
 
             try {
-                const p1 = await cercaCoordinate(document.getElementById('partenza').value);
-                const p2 = await cercaCoordinate(document.getElementById('arrivo').value);
+                // 1. Cerca Coordinate Partenza con intestazioni fisse per evitare "Failed to fetch"
+                const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
+                const resP1 = await fetch(urlP1, { headers: { 'Accept': 'application/json' } });
+                
+                if (!resP1.ok) {
+                    throw new Error(`TomTom Search ha risposto con codice errore: ${resP1.status}`);
+                }
+                const dataP1 = await resP1.json();
+                
+                if (!dataP1.results || dataP1.results.length === 0) {
+                    divRisultato.innerText = "Località di partenza non trovata.";
+                    return;
+                }
+                const lat1 = dataP1.results[0].position.lat;
+                const lon1 = dataP1.results[0].position.lon;
 
-                // URL formattato per accettazione CORS pulita
-                const urlRouting = `https://tomtom.com{p1[0]},${p1[1]}:${p2[0]},${p2[1]}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4.0`;
+                // 2. Cerca Coordinate Arrivo
+                const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
+                const resP2 = await fetch(urlP2, { headers: { 'Accept': 'application/json' } });
                 
-                const response = await fetch(urlRouting, { method: 'GET', mode: 'cors' });
+                if (!resP2.ok) {
+                    throw new Error(`TomTom Search ha risposto con codice errore: ${resP2.status}`);
+                }
+                const dataP2 = await resP2.json();
                 
-                if (!response.ok) {
-                    throw new Error(`Impossibile calcolare il percorso (Codice: ${response.status}). Controlla i servizi attivi sulla chiave.`);
+                if (!dataP2.results || dataP2.results.length === 0) {
+                    divRisultato.innerText = "Località di arrivo non trovata.";
+                    return;
+                }
+                const lat2 = dataP2.results[0].position.lat;
+                const lon2 = dataP2.results[0].position.lon;
+
+                divRisultato.innerText = "Calcolo percorso camion in corso...";
+
+                // 3. Richiesta di Calcolo Percorso Camion
+                const urlRouting = `https://tomtom.com{lat1},${lon1}:${lat2},${lon2}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4.0`;
+                const resRouting = await fetch(urlRouting, { headers: { 'Accept': 'application/json' } });
+                
+                if (!resRouting.ok) {
+                    throw new Error(`TomTom Routing ha risposto con codice errore: ${resRouting.status}`);
                 }
 
-                const data = await response.json();
+                const dataRouting = await resRouting.json();
 
-                if (data.routes && data.routes.length > 0) {
-                    const route = data.routes[0];
+                if (dataRouting.routes && dataRouting.routes.length > 0) {
+                    const percorso = dataRouting.routes[0];
                     
-                    const distanzaKm = (route.summary.lengthInMeters / 1000).toFixed(1);
-                    const oreTotali = route.summary.travelTimeInSeconds / 3600;
+                    const distanzaKm = (percorso.summary.lengthInMeters / 1000).toFixed(1);
+                    const oreTotali = percorso.summary.travelTimeInSeconds / 3600;
                     const ore = Math.floor(oreTotali);
                     const minuti = Math.round((oreTotali - ore) * 60);
 
-                    divRisultato.innerText = `🚚 TomTom Camion: ${distanzaKm} km | Tempo: ${ore}h ${minuti}min`;
+                    divRisultato.innerText = `🚚 Camion: ${distanzaKm} km | Tempo stimato: ${ore}h ${minuti}min`;
 
                     if (stratoPercorso) { map.removeLayer(stratoPercorso); }
 
                     const puntiLinea = [];
-                    route.legs.forEach(leg => {
+                    percorso.legs.forEach(leg => {
                         leg.points.forEach(pt => {
                             puntiLinea.push([pt.latitude, pt.longitude]);
                         });
@@ -97,12 +118,12 @@
                     stratoPercorso = L.polyline(puntiLinea, {color: '#e67e22', weight: 6}).addTo(map);
                     map.fitBounds(stratoPercorso.getBounds());
                 } else {
-                    divRisultato.innerText = "Nessun percorso trovato per questi parametri.";
+                    divRisultato.innerText = "Nessun percorso stradale trovato.";
                 }
 
             } catch (error) {
-                divRisultato.innerText = "Errore durante il calcolo.";
-                alert(error.message);
+                divRisultato.innerText = "Errore bloccante di rete.";
+                alert("Dettaglio Errore: " + error.message);
             }
         }
     </script>
