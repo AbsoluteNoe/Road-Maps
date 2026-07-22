@@ -29,7 +29,7 @@
 
     <script>
         // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE
-        const TOMTOM_KEY = "LA_TUA_API_KEY_TOMTOM"; 
+        const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
 
         // 1. Inizializza la mappa Leaflet
         const map = L.map('mappa').setView([42.5, 12.5], 6);
@@ -44,7 +44,7 @@
             const partenzaTesto = document.getElementById('partenza').value;
             const arrivoTesto = document.getElementById('arrivo').value;
             
-            if (TOMTOM_KEY === "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK" || TOMTOM_KEY === "") {
+            if (TOMTOM_KEY === "LA_TUA_API_KEY_TOMTOM" || TOMTOM_KEY === "") {
                 alert("Sostituisci LA_TUA_API_KEY_TOMTOM con la tua vera chiave alfanumerica!");
                 return;
             }
