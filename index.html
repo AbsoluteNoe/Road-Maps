@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigatore Camion TomTom</title>
+    <!-- SDK Grafico di TomTom -->
+    <link rel="stylesheet" type="text/css" href="https://tomtom.com">
+    <script src="https://tomtom.com"></script>
+    <!-- SDK Servizi di TomTom (Routing e Geocoding) -->
+    <script src="https://tomtom.com"></script>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        #controlli { padding: 15px; background: #2c3e50; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1000; }
+        #mappa { flex-grow: 1; width: 100%; }
+        input { width: 95%; padding: 8px; margin-bottom: 8px; border: none; border-radius: 4px; }
+        button { background: #e67e22; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%; font-size: 1em; }
+        #risultato { margin-top: 12px; font-size: 1.1em; font-weight: bold; color: #f1c40f; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="controlli">
+        <input type="text" id="partenza" placeholder="Inserisci partenza (es. Milano)" value="Milano">
+        <input type="text" id="arrivo" placeholder="Inserisci arrivo (es. Roma)" value="Roma">
+        <button onclick="calcolaPercorsoTomTom()">Calcola Percorso Camion con TomTom</button>
+        <div id="risultato"></div>
+    </div>
+
+    <div id="mappa"></div>
+
+    <script>
+        // INSERISCI QUI LA TUA API KEY DI TOMTOM
+        const TOMTOM_KEY = scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK; 
+
+        // 1. Inizializza la mappa di TomTom centrata sull'Italia
+        const map = tt.map({
+            key: TOMTOM_KEY,
+            container: 'mappa',
+            center: [12.5, 42.5],
+            zoom: 6
+        });
+
+        // Funzione per convertire un testo in coordinate GPS usando TomTom
+        async function cercaCoordinate(testo) {
+            const response = await tt.services.fuzzySearch({ key: TOMTOM_KEY, query: testo });
+            if (response.results && response.results.length > 0) {
+                const pos = response.results[0].position;
+                return [pos.lng, pos.lat]; // Ritorna [Longitudine, Latitudine]
+            }
+            throw new Error("Indirizzo non trovato: " + testo);
+        }
+
+        async function calcolaPercorsoTomTom() {
+            const divRisultato = document.getElementById('risultato');
+            divRisultato.innerText = "Calcolo in corso con parametri camion...";
+
+            try {
+                const p1 = await cercaCoordinate(document.getElementById('partenza').value);
+                const p2 = await cercaCoordinate(document.getElementById('arrivo').value);
+
+                // Richiesta di routing specifica per CAMION (Truck)
+                tt.services.calculateRoute({
+                    key: TOMTOM_KEY,
+                    locations: `${p1[0]},${p1[1]}:${p2[0]},${p2[1]}`,
+                    travelMode: 'truck',          // Forza le regole dei mezzi pesanti
+                    vehicleMaxSpeed: 90,          // Limite di velocità massimo per camion (km/h)
+                    vehicleWeight: 18000,         // Peso in kg (opzionale, es. 18 tonnellate)
+                    vehicleWidth: 2.5,            // Larghezza in metri (opzionale)
+                    vehicleHeight: 4.0            // Altezza in metri (opzionale)
+                }).then(function(response) {
+                    const route = response.routes[0];
+                    
+                    // Estrae distanza e tempo calcolati con i limiti camion
+                    const distanzaKm = (route.summary.lengthInMeters / 1000).toFixed(1);
+                    const oreTotali = route.summary.travelTimeInSeconds / 3600;
+                    const ore = Math.floor(oreTotali);
+                    const minuti = Math.round((oreTotali - ore) * 60);
+
+                    divRisultato.innerText = `🚚 TomTom Camion: ${distanzaKm} km | Tempo: ${ore}h ${minuti}min`;
+
+                    // Rimuove vecchi percorsi grafici se presenti sulla mappa
+                    if (map.getLayer('route')) {
+                        map.removeLayer('route');
+                        map.removeSource('route');
+                    }
+
+                    // Disegna la linea del percorso sulla mappa TomTom
+                    const geojson = response.toGeoJson();
+                    map.addLayer({
+                        'id': 'route',
+                        'type': 'line',
+                        'source': {
+                            'type': 'geojson',
+                            'data': geojson
+                        },
+                        'paint': {
+                            'line-color': '#00d2d3',
+                            'line-width': 6
+                        }
+                    });
+
+                    // Zoom automatico per mostrare tutto il percorso
+                    const coordinates = geojson.features[0].geometry.coordinates;
+                    const bounds = new tt.LngLatBounds();
+                    coordinates.forEach(coord => bounds.extend(tt.LngLat.convert(coord)));
+                    map.fitBounds(bounds, { padding: 50 });
+                });
+
+            } catch (error) {
+                divRisultato.innerText = "Errore nel calcolo del percorso.";
+                alert(error.message);
+            }
+        }
+    </script>
+</body>
+</html>
