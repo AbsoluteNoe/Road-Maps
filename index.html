@@ -28,7 +28,7 @@
     <div id="mappa"></div>
 
     <script>
-        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE
+        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE, CAZZO
         const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
 
         // 1. Inizializza la mappa Leaflet
@@ -52,19 +52,12 @@
             divRisultato.innerText = "Ricerca località in corso...";
 
             try {
-                // Configurazione di intestazione standard per evitare il "Failed to fetch" sul web
-                const opzioniFetch = {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                    mode: 'cors'
-                };
-
-                // 1. Cerca Coordinate Partenza
+                // 1. Cerca Coordinate Partenza (Utilizza l'endpoint strutturato con versione v2)
                 const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
-                const resP1 = await fetch(urlP1, opzioniFetch);
+                const resP1 = await fetch(urlP1);
                 
                 if (!resP1.ok) {
-                    throw new Error(`TomTom Search Partenza fallito con codice: ${resP1.status}`);
+                    throw new Error(`Ricerca partenza fallita con stato: ${resP1.status}`);
                 }
                 const dataP1 = await resP1.json();
                 
@@ -75,12 +68,12 @@
                 const lat1 = dataP1.results[0].position.lat;
                 const lon1 = dataP1.results[0].position.lon;
 
-                // 2. Cerca Coordinate Arrivo
+                // 2. Cerca Coordinate Arrivo (Utilizza l'endpoint strutturato con versione v2)
                 const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
-                const resP2 = await fetch(urlP2, opzioniFetch);
+                const resP2 = await fetch(urlP2);
                 
                 if (!resP2.ok) {
-                    throw new Error(`TomTom Search Arrivo fallito con codice: ${resP2.status}`);
+                    throw new Error(`Ricerca arrivo fallita con stato: ${resP2.status}`);
                 }
                 const dataP2 = await resP2.json();
                 
@@ -93,12 +86,12 @@
 
                 divRisultato.innerText = "Calcolo percorso camion in corso...";
 
-                // 3. Richiesta di Calcolo Percorso Camion
+                // 3. Richiesta di Calcolo Percorso Camion (Utilizza l'endpoint con versione v1)
                 const urlRouting = `https://tomtom.com{lat1},${lon1}:${lat2},${lon2}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4.0`;
-                const resRouting = await fetch(urlRouting, opzioniFetch);
+                const resRouting = await fetch(urlRouting);
                 
                 if (!resRouting.ok) {
-                    throw new Error(`TomTom Routing fallito con codice: ${resRouting.status}`);
+                    throw new Error(`Calcolo percorso fallito con stato: ${resRouting.status}`);
                 }
 
                 const dataRouting = await resRouting.json();
@@ -109,9 +102,9 @@
                     const distanzaKm = (percorso.summary.lengthInMeters / 1000).toFixed(1);
                     const oreTotali = percorso.summary.travelTimeInSeconds / 3600;
                     const ore = Math.floor(oreTotali);
-                    const minutes = Math.round((oreTotali - ore) * 60);
+                    const minuti = Math.round((oreTotali - ore) * 60);
 
-                    divRisultato.innerText = `🚚 Camion: ${distanzaKm} km | Tempo stimato: ${ore}h ${minutes}min`;
+                    divRisultato.innerText = `🚚 Camion: ${distanzaKm} km | Tempo stimato: ${ore}h ${minuti}min`;
 
                     if (stratoPercorso) { map.removeLayer(stratoPercorso); }
 
@@ -129,7 +122,7 @@
                 }
 
             } catch (error) {
-                divRisultato.innerText = "Errore bloccante durante il calcolo.";
+                divRisultato.innerText = "Errore durante il calcolo.";
                 alert("Dettaglio Errore: " + error.message);
             }
         }
