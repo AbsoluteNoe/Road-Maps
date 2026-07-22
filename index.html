@@ -41,9 +41,13 @@
             zoom: 6
         });
 
-        // Funzione per convertire un testo in coordinate GPS usando TomTom
+        // Funzione corretta per convertire un testo in coordinate GPS usando TomTom SDK v6
         async function cercaCoordinate(testo) {
-            const response = await tt.services.fuzzySearch({ key: TOMTOM_KEY, query: testo });
+            const response = await tt.services.fuzzySearch({ 
+                key: TOMTOM_KEY, 
+                query: testo 
+            }).go(); // Il metodo .go() è fondamentale per eseguire la richiesta
+            
             if (response.results && response.results.length > 0) {
                 const pos = response.results[0].position;
                 return [pos.lng, pos.lat]; // Ritorna [Longitudine, Latitudine]
@@ -62,13 +66,13 @@
                 // Richiesta di routing specifica per CAMION (Truck)
                 tt.services.calculateRoute({
                     key: TOMTOM_KEY,
-                    locations: `${p1[0]},${p1[1]}:${p2[0]},${p2[1]}`,
+                    locations: `${p1[0]},${p1[1]}:${p2[0]},${p2[1]}`, // Formato corretto stringa coord
                     travelMode: 'truck',          // Forza le regole dei mezzi pesanti
                     vehicleMaxSpeed: 90,          // Limite di velocità massimo per camion (km/h)
-                    vehicleWeight: 18000,         // Peso in kg (opzionale, es. 18 tonnellate)
-                    vehicleWidth: 2.5,            // Larghezza in metri (opzionale)
-                    vehicleHeight: 4.0            // Altezza in metri (opzionale)
-                }).then(function(response) {
+                    vehicleWeight: 18000,         // Peso in kg (es. 18 tonnellate)
+                    vehicleWidth: 2.5,            // Larghezza in metri
+                    vehicleHeight: 4.0            // Altezza in metri
+                }).go().then(function(response) {
                     const route = response.routes[0];
                     
                     // Estrae distanza e tempo calcolati con i limiti camion
@@ -105,10 +109,13 @@
                     const bounds = new tt.LngLatBounds();
                     coordinates.forEach(coord => bounds.extend(tt.LngLat.convert(coord)));
                     map.fitBounds(bounds, { padding: 50 });
+                }).catch(function(err) {
+                    divRisultato.innerText = "Errore nel calcolo del percorso stradale.";
+                    console.error(err);
                 });
 
             } catch (error) {
-                divRisultato.innerText = "Errore nel calcolo del percorso.";
+                divRisultato.innerText = "Errore: località non trovata.";
                 alert(error.message);
             }
         }
