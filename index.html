@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Navigatore Camion Professionale</title>
+
+<!-- Leaflet -->
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<style>
+
+html,
+body{
+    margin:0;
+    padding:0;
+    height:100%;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    display:flex;
+    flex-direction:column;
+    background:#f2f2f2;
+}
+
+#controlli{
+
+    background:#2c3e50;
+
+    color:white;
+
+    padding:15px;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.3);
+
+    z-index:999;
+
+    position:relative;
+
+}
+
+.campo-wrapper{
+
+    position:relative;
+
+    margin-bottom:10px;
+
+}
+
+input{
+
+    width:100%;
+
+    box-sizing:border-box;
+
+    padding:10px;
+
+    border-radius:5px;
+
+    border:none;
+
+    font-size:15px;
+
+}
+
+.suggerimenti{
+
+    position:absolute;
+
+    top:100%;
+
+    left:0;
+
+    right:0;
+
+    background:white;
+
+    color:#2c3e50;
+
+    border-radius:0 0 5px 5px;
+
+    max-height:220px;
+
+    overflow-y:auto;
+
+    box-shadow:0 4px 10px rgba(0,0,0,.4);
+
+    z-index:1500;
+
+    display:none;
+
+}
+
+.suggerimenti div{
+
+    padding:10px;
+
+    cursor:pointer;
+
+    border-bottom:1px solid #eee;
+
+    font-size:14px;
+
+    line-height:1.3;
+
+}
+
+.suggerimenti div:last-child{
+
+    border-bottom:none;
+
+}
+
+.suggerimenti div:hover,
+.suggerimenti div.attivo{
+
+    background:#f1c40f;
+
+}
+
+.suggerimenti .nome-luogo{
+
+    font-weight:bold;
+
+    display:block;
+
+}
+
+.suggerimenti .indirizzo-luogo{
+
+    font-size:12px;
+
+    color:#666;
+
+}
+
+button{
+
+    width:100%;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:5px;
+
+    background:#e67e22;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+    font-size:16px;
+
+    margin-top:10px;
+
+}
+
+button:hover{
+
+    background:#d35400;
+
+}
+
+button:disabled{
+
+    background:#7f8c8d;
+
+    cursor:not-allowed;
+
+}
+
+#mappa{
+
+    flex:1;
+
+    position:relative;
+
+}
+
+#risultato{
+
+    margin-top:15px;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    color:#f1c40f;
+
+    text-align:center;
+
+}
+
+/****************************************************
+        STILE MARKER FRECCIA DIREZIONE (GPS)
+****************************************************/
+
+.freccia-navigazione{
+
+    width:40px;
+
+    height:40px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:30px;
+
+    color:#2980ff;
+
+    text-shadow:
+
+        -1px -1px 0 #fff,
+
+        1px -1px 0 #fff,
+
+        -1px 1px 0 #fff,
+
+        1px 1px 0 #fff,
+
+        0 0 6px rgba(0,0,0,.4);
+
+    transition:transform 0.25s linear;
+
+    transform-origin:50% 50%;
+
+}
+
+/****************************************************
+        PANNELLO NAVIGAZIONE (STILE GOOGLE MAPS)
+****************************************************/
+
+#pannelloNavigazione{
+
+    display:none;
+
+    position:fixed;
+
+    left:0;
+
+    right:0;
+
+    bottom:0;
+
+    background:#1b1f27;
+
+    color:white;
+
+    padding:15px;
+
+    box-shadow:0 -4px 15px rgba(0,0,0,.4);
+
+    z-index:2000;
+
+}
+
+.riga-principale{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+}
+
+.icona-manovra{
+
+    font-size:34px;
+
+    min-width:46px;
+
+    text-align:center;
+
+}
+
+.testo-istruzione{
+
+    flex:1;
+
+}
+
+.messaggio-nav{
+
+    font-size:18px;
+
+    font-weight:bold;
+
+}
+
+.distanza-nav{
+
+    font-size:14px;
+
+    color:#f1c40f;
+
+    margin-top:2px;
+
+}
+
+.strada-attuale{
+
+    margin-top:8px;
+
+    font-size:13px;
+
+    color:#bbb;
+
+}
+
+.riga-info{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-top:10px;
+
+    font-size:14px;
+
+    color:#ddd;
+
+}
+
+.btn-termina{
+
+    margin-top:12px;
+
+    background:#c0392b;
+
+}
+
+.btn-termina:hover{
+
+    background:#962d22;
+
+}
+
+#btnCentra{
+
+    display:none;
+
+    position:fixed;
+
+    right:15px;
+
+    bottom:230px;
+
+    width:50px;
+
+    height:50px;
+
+    border-radius:50%;
+
+    background:#2980ff;
+
+    color:white;
+
+    font-size:22px;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.4);
+
+    z-index:2001;
+
+    padding:0;
+
+    margin:0;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="controlli">
+
+<div class="campo-wrapper">
+
+<input
+type="text"
+id="partenza"
+placeholder="Partenza (indirizzo, azienda, luogo...)"
+value=""
+autocomplete="off">
+
+<div class="suggerimenti" id="suggerimenti-partenza"></div>
+
+</div>
+
+
+<div class="campo-wrapper">
+
+<input
+type="text"
+id="arrivo"
+placeholder="Arrivo (indirizzo, azienda, luogo...)"
+value=""
+autocomplete="off">
+
+<div class="suggerimenti" id="suggerimenti-arrivo"></div>
+
+</div>
+
+
+<button onclick="calcolaPercorso()">
+
+Calcola Percorso Camion
+
+</button>
+
+
+<button id="btnAvviaNavigazione"
+onclick="avviaNavigazione()"
+style="background:#27ae60"
+disabled>
+
+🧭 Avvia Navigazione
+
+</button>
+
+
+<button onclick="pulisciMappa()"
+style="background:#c0392b">
+
+Cancella percorso
+
+</button>
+
+
+<div id="risultato"></div>
+
+</div>
+
+
+<div id="mappa"></div>
+
+
+<!-- Pannello di navigazione stile Google Maps -->
+
+<div id="pannelloNavigazione">
+
+<div class="riga-principale">
+
+<div id="iconaManovra" class="icona-manovra">⬆️</div>
+
+<div class="testo-istruzione">
+
+<div id="messaggioNavigazione" class="messaggio-nav">
+
+Prosegui dritto
+
+</div>
+
+<div id="distanzaManovra" class="distanza-nav"></div>
+
+</div>
+
+</div>
+
+<div id="stradaAttuale" class="strada-attuale"></div>
+
+<div class="riga-info">
+
+<span id="velocitaAttuale">0 km/h</span>
+
+<span id="infoRimanente"></span>
+
+</div>
+
+<button class="btn-termina" onclick="terminaNavigazione()">
+
+✕ Termina navigazione
+
+</button>
+
+</div>
+
+
+<!-- Pulsante per ricentrare la mappa sulla posizione -->
+
+<button id="btnCentra" onclick="ricentraMappa()">🎯</button>
+
+
+<script>
+
+/****************************************************
+                CONFIGURAZIONE
+****************************************************/
+
+const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK";
+
+/****************************************************
+                MAPPA
+****************************************************/
+
+const map = L.map("mappa").setView([42.5,12.5],6);
+
+L.tileLayer(
+
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+{
+
+attribution:"© OpenStreetMap contributors"
+
+}
+
+).addTo(map);
+
+let markerPartenza=null;
+
+let markerArrivo=null;
+
+let percorsoLayer=null;
+
+/****************************************************
+        STATO SELEZIONE LUOGHI (autocomplete)
+****************************************************/
+
+// Memorizza le coordinate scelte dall'utente tramite
+
+// i suggerimenti, cosi' da non dover rifare la ricerca
+
+// quando si preme "Calcola Percorso Camion".
+
+const luoghiSelezionati = {
+
+partenza:null,
+
+arrivo:null
+
+};
+
+/****************************************************
+        STATO PERCORSO E NAVIGAZIONE
+****************************************************/
+
+let puntiPercorso = [];        // coordinate della polilinea corrente
+
+let istruzioni = [];           // istruzioni svolta-per-svolta
+
+let indiceIstruzioneCorrente = 0;
+
+let arrivoCorrente = null;     // destinazione (per il ricalcolo)
+
+let navigazioneAttiva = false;
+
+let watchIdNavigazione = null;
+
+let markerPosizioneUtente = null;
+
+let ultimaPosizioneGps = null;
+
+let contatoreFuoriPercorso = 0;
+
+let seguiPosizione = true;
+
+const SOGLIA_RICALCOLO_METRI = 50;
+
+const SOGLIA_AVANZAMENTO_METRI = 35;
+
+const LETTURE_FUORI_PERCORSO_PER_RICALCOLO = 3;
+
+/****************************************************
+        GESTIONE AUTOCOMPLETE / SUGGERIMENTI
+****************************************************/
+
+const timerRicerca = {
+
+partenza:null,
+
+arrivo:null
+
+};
+
+function configuraAutocomplete(idCampo){
+
+const input =
+document.getElementById(idCampo);
+
+const box =
+document.getElementById("suggerimenti-" + idCampo);
+
+
+input.addEventListener("input", () =>{
+
+
+luoghiSelezionati[idCampo] = null;
+
+
+const testo =
+input.value.trim();
+
+
+clearTimeout(
+timerRicerca[idCampo]
+);
+
+
+if(testo.length < 3){
+
+nascondiSuggerimenti(box);
+
+return;
+
+}
+
+
+timerRicerca[idCampo] =
+setTimeout(async () => {
+
+await cercaSuggerimenti(
+testo,
+box,
+input,
+idCampo
+);
+
+},350);
+
+});
+
+
+document.addEventListener("click",(evento)=>{
+
+if(
+!box.contains(evento.target) &&
+evento.target !== input
+){
+
+nascondiSuggerimenti(box);
+
+}
+
+});
+
+
+input.addEventListener("keydown",(evento)=>{
+
+const voci =
+box.querySelectorAll("div");
+
+if(!voci.length || box.style.display === "none"){
+
+return;
+
+}
+
+
+let indiceAttivo = -1;
+
+voci.forEach((voce,indice)=>{
+
+if(voce.classList.contains("attivo")){
+
+indiceAttivo = indice;
+
+}
+
+});
+
+
+if(evento.key === "ArrowDown"){
+
+evento.preventDefault();
+
+indiceAttivo = (indiceAttivo + 1) % voci.length;
+
+aggiornaEvidenza(voci,indiceAttivo);
+
+}
+else if(evento.key === "ArrowUp"){
+
+evento.preventDefault();
+
+indiceAttivo =
+(indiceAttivo - 1 + voci.length) % voci.length;
+
+aggiornaEvidenza(voci,indiceAttivo);
+
+}
+else if(evento.key === "Enter"){
+
+if(indiceAttivo >= 0){
+
+evento.preventDefault();
+
+voci[indiceAttivo].click();
+
+}
+
+}
+else if(evento.key === "Escape"){
+
+nascondiSuggerimenti(box);
+
+}
+
+});
+
+}
+
+function aggiornaEvidenza(voci,indice){
+
+voci.forEach(v=>v.classList.remove("attivo"));
+
+voci[indice].classList.add("attivo");
+
+voci[indice].scrollIntoView({block:"nearest"});
+
+}
+
+function nascondiSuggerimenti(box){
+
+box.style.display = "none";
+
+box.innerHTML = "";
+
+}
+
+async function cercaSuggerimenti(testo,box,input,idCampo){
+
+try{
+
+const url =
+
+`https://api.tomtom.com/search/2/search/${encodeURIComponent(testo)}.json?key=${TOMTOM_KEY}&limit=6&countrySet=IT&idxSet=POI,Geo,Addr,Str`;
+
+const risposta = await fetch(url);
+
+if(!risposta.ok){
+
+nascondiSuggerimenti(box);
+
+return;
+
+}
+
+const dati = await risposta.json();
+
+if(!dati.results || !dati.results.length){
+
+box.innerHTML =
+"<div style='cursor:default;color:#999'>Nessun risultato</div>";
+
+box.style.display = "block";
+
+return;
+
+}
+
+box.innerHTML = "";
+
+dati.results.forEach(risultato=>{
+
+const voce = document.createElement("div");
+
+const nome =
+risultato.poi ?
+risultato.poi.name :
+(risultato.address ?
+risultato.address.freeformAddress :
+"Luogo sconosciuto");
+
+const indirizzoCompleto =
+risultato.address ?
+risultato.address.freeformAddress :
+"";
+
+voce.innerHTML =
+
+`<span class="nome-luogo">${escapeHtml(nome)}</span>` +
+
+(indirizzoCompleto && indirizzoCompleto !== nome ?
+`<span class="indirizzo-luogo">${escapeHtml(indirizzoCompleto)}</span>` :
+"");
+
+voce.addEventListener("click",()=>{
+
+input.value = nome;
+
+luoghiSelezionati[idCampo] = {
+
+lat: risultato.position.lat,
+
+lon: risultato.position.lon,
+
+etichetta: nome
+
+};
+
+nascondiSuggerimenti(box);
+
+});
+
+box.appendChild(voce);
+
+});
+
+box.style.display = "block";
+
+}
+catch(errore){
+
+console.error(errore);
+
+nascondiSuggerimenti(box);
+
+}
+
+}
+
+function escapeHtml(testo){
+
+const div = document.createElement("div");
+
+div.innerText = testo;
+
+return div.innerHTML;
+
+}
+
+/****************************************************
+    GEOCODING / RICERCA LUOGO (fallback manuale)
+****************************************************/
+
+async function cercaLuogo(testo){
+
+const url =
+
+`https://api.tomtom.com/search/2/search/${encodeURIComponent(testo)}.json?key=${TOMTOM_KEY}&limit=1&countrySet=IT&idxSet=POI,Geo,Addr,Str`;
+
+const risposta = await fetch(url);
+
+if(!risposta.ok){
+
+throw new Error("Errore ricerca luogo");
+
+}
+
+const dati = await risposta.json();
+
+if(!dati.results || !dati.results.length){
+
+throw new Error("Località non trovata: " + testo);
+
+}
+
+const primo = dati.results[0];
+
+return{
+
+lat: primo.position.lat,
+
+lon: primo.position.lon
+
+};
+
+}
+
+/****************************************************
+    ESTRAZIONE ISTRUZIONI SVOLTA-PER-SVOLTA
+****************************************************/
+
+function estraiIstruzioni(route){
+
+const lista = [];
+
+if(route.guidance && route.guidance.instructions){
+
+route.guidance.instructions.forEach(istr=>{
+
+if(istr.point){
+
+lista.push({
+
+lat: istr.point.latitude,
+
+lon: istr.point.longitude,
+
+messaggio: istr.message || "Prosegui dritto",
+
+manovra: istr.maneuver || "",
+
+strada: istr.street || istr.signpostText || ""
+
+});
+
+}
+
+});
+
+}
+
+return lista;
+
+}
+
+/****************************************************
+            ROUTING CAMION TOMTOM
+****************************************************/
+
+async function calcolaPercorso(){
+
+const risultato = document.getElementById("risultato");
+
+const inputPartenza =
+document.getElementById("partenza");
+
+const inputArrivo =
+document.getElementById("arrivo");
+
+const partenza = inputPartenza.value.trim();
+
+const arrivo = inputArrivo.value.trim();
+
+
+if(!partenza || !arrivo){
+
+    risultato.innerText =
+    "Inserisci partenza e arrivo.";
+
+    return;
+
+}
+
+
+if(
+TOMTOM_KEY === "" ||
+TOMTOM_KEY === "INSERISCI_LA_TUA_API_KEY"
+){
+
+    alert("Inserisci la tua API Key TomTom nel codice.");
+
+    return;
+
+}
+
+
+if(navigazioneAttiva){
+
+terminaNavigazione();
+
+}
+
+
+document.getElementById("btnAvviaNavigazione").disabled = true;
+
+
+try{
+
+
+risultato.innerText =
+"Ricerca località...";
+
+
+const puntoPartenza =
+luoghiSelezionati.partenza ?
+luoghiSelezionati.partenza :
+await cercaLuogo(partenza);
+
+
+const puntoArrivo =
+luoghiSelezionati.arrivo ?
+luoghiSelezionati.arrivo :
+await cercaLuogo(arrivo);
+
+
+
+risultato.innerText =
+"Calcolo percorso camion...";
+
+
+
+const urlRouting =
+
+`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4&instructionsType=text&language=it-IT`;
+
+
+const rispostaRouting =
+await fetch(urlRouting);
+
+
+if(!rispostaRouting.ok){
+
+throw new Error(
+"Errore nel calcolo percorso"
+);
+
+}
+
+
+const datiRouting =
+await rispostaRouting.json();
+
+if(
+!datiRouting.routes ||
+datiRouting.routes.length===0
+){
+
+risultato.innerText =
+"Nessun percorso trovato per camion.";
+
+return;
+
+}
+
+
+
+const route =
+datiRouting.routes[0];
+
+
+const distanzaKm =
+(
+route.summary.lengthInMeters / 1000
+).toFixed(1);
+
+const secondi =
+route.summary.travelTimeInSeconds;
+
+
+const ore =
+Math.floor(secondi / 3600);
+
+
+const minuti =
+Math.round(
+(secondi % 3600) / 60
+);
+
+
+
+risultato.innerText =
+
+`🚚 ${distanzaKm} km - Tempo stimato ${ore}h ${minuti}min`;
+
+
+if(percorsoLayer){
+
+map.removeLayer(percorsoLayer);
+
+}
+
+
+if(markerPartenza){
+
+map.removeLayer(markerPartenza);
+
+}
+
+
+if(markerArrivo){
+
+map.removeLayer(markerArrivo);
+
+}
+
+
+markerPartenza = L.marker(
+
+[
+puntoPartenza.lat,
+puntoPartenza.lon
+]
+
+)
+
+.addTo(map)
+
+.bindPopup(
+"Partenza: " + partenza
+);
+
+
+
+markerArrivo = L.marker(
+[
+puntoArrivo.lat,
+puntoArrivo.lon
+]
+
+)
+
+.addTo(map)
+
+.bindPopup(
+"Arrivo: " + arrivo
+);
+
+
+
+let punti=[];
+
+
+if(
+route.legs &&
+route.legs.length>0
+){
+
+
+route.legs.forEach(leg=>{
+
+
+if(leg.points){
+
+
+leg.points.forEach(p=>{
+
+
+punti.push([
+
+p.latitude,
+
+p.longitude
+
+]);
+});
+
+
+}
+
+
+});
+
+
+}
+
+
+
+if(punti.length===0){
+
+throw new Error(
+"Nessuna geometria percorso ricevuta"
+);
+
+}
+
+
+
+percorsoLayer =
+L.polyline(
+
+punti,
+
+{
+
+color:"#e67e22",
+
+weight:6,
+
+opacity:0.9
+
+}
+
+)
+
+.addTo(map);
+
+
+
+map.fitBounds(
+percorsoLayer.getBounds()
+);
+
+
+/****************************************************
+    SALVATAGGIO STATO PER LA NAVIGAZIONE
+****************************************************/
+
+puntiPercorso = punti;
+
+istruzioni = estraiIstruzioni(route);
+
+indiceIstruzioneCorrente = 0;
+
+arrivoCorrente = puntoArrivo;
+
+contatoreFuoriPercorso = 0;
+
+document.getElementById("btnAvviaNavigazione").disabled = false;
+
+}
+
+catch(errore){
+
+
+console.error(errore);
+
+
+risultato.innerText =
+"Errore: " + errore.message;
+
+
+}
+
+
+}
+
+/****************************************************
+        RICALCOLO AUTOMATICO DEL PERCORSO
+****************************************************/
+
+async function ricalcolaPercorso(lat,lon){
+
+if(!arrivoCorrente){
+
+return;
+
+}
+
+
+try{
+
+document.getElementById("messaggioNavigazione").innerText =
+"Ricalcolo percorso...";
+
+
+const urlRouting =
+
+`https://api.tomtom.com/routing/1/calculateRoute/${lat},${lon}:${arrivoCorrente.lat},${arrivoCorrente.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4&instructionsType=text&language=it-IT`;
+
+
+const rispostaRouting =
+await fetch(urlRouting);
+
+
+if(!rispostaRouting.ok){
+
+throw new Error("Errore nel ricalcolo del percorso");
+
+}
+
+
+const datiRouting =
+await rispostaRouting.json();
+
+
+if(!datiRouting.routes || !datiRouting.routes.length){
+
+throw new Error("Nessun percorso alternativo trovato");
+
+}
+
+
+const route = datiRouting.routes[0];
+
+
+let nuoviPunti = [];
+
+
+if(route.legs){
+
+route.legs.forEach(leg=>{
+
+if(leg.points){
+
+leg.points.forEach(p=>{
+
+nuoviPunti.push([p.latitude,p.longitude]);
+
+});
+
+}
+
+});
+
+}
+
+
+if(nuoviPunti.length===0){
+
+throw new Error("Geometria del nuovo percorso non disponibile");
+
+}
+
+
+puntiPercorso = nuoviPunti;
+
+
+if(percorsoLayer){
+
+map.removeLayer(percorsoLayer);
+
+}
+
+
+percorsoLayer =
+L.polyline(
+
+puntiPercorso,
+
+{
+
+color:"#e67e22",
+
+weight:6,
+
+opacity:0.9
+
+}
+
+)
+
+.addTo(map);
+
+
+istruzioni = estraiIstruzioni(route);
+
+indiceIstruzioneCorrente = 0;
+
+contatoreFuoriPercorso = 0;
+
+}
+catch(errore){
+
+console.error(errore);
+
+}
+
+}
+
+/****************************************************
+        NAVIGAZIONE GPS SVOLTA-PER-SVOLTA
+****************************************************/
+
+function avviaNavigazione(){
+
+if(!puntiPercorso.length){
+
+alert("Calcola prima un percorso.");
+
+return;
+
+}
+
+
+if(!navigator.geolocation){
+
+alert("Questo dispositivo/browser non supporta il GPS.");
+
+return;
+
+}
+
+
+navigazioneAttiva = true;
+
+seguiPosizione = true;
+
+indiceIstruzioneCorrente = 0;
+
+contatoreFuoriPercorso = 0;
+
+ultimaPosizioneGps = null;
+
+
+document.getElementById("pannelloNavigazione").style.display = "block";
+
+document.getElementById("controlli").style.display = "none";
+
+document.getElementById("btnCentra").style.display = "none";
+
+
+watchIdNavigazione =
+navigator.geolocation.watchPosition(
+
+onPosizioneAggiornata,
+
+onErroreGeolocalizzazione,
+
+{
+
+enableHighAccuracy:true,
+
+maximumAge:1000,
+
+timeout:20000
+
+}
+
+);
+
+}
+
+function terminaNavigazione(){
+
+navigazioneAttiva = false;
+
+
+if(watchIdNavigazione !== null){
+
+navigator.geolocation.clearWatch(watchIdNavigazione);
+
+watchIdNavigazione = null;
+
+}
+
+
+document.getElementById("pannelloNavigazione").style.display = "none";
+
+document.getElementById("controlli").style.display = "block";
+
+document.getElementById("btnCentra").style.display = "none";
+
+
+if(markerPosizioneUtente){
+
+map.removeLayer(markerPosizioneUtente);
+
+markerPosizioneUtente = null;
+
+}
+
+
+if(percorsoLayer){
+
+map.fitBounds(percorsoLayer.getBounds());
+
+}
+
+}
+
+function onErroreGeolocalizzazione(errore){
+
+console.error(errore);
+
+alert("Impossibile ottenere la posizione GPS: " + errore.message);
+
+terminaNavigazione();
+
+}
+
+function onPosizioneAggiornata(posizione){
+
+const lat = posizione.coords.latitude;
+
+const lon = posizione.coords.longitude;
+
+const velocitaMs = posizione.coords.speed;
+
+let direzione = posizione.coords.heading;
+
+
+if(direzione === null || isNaN(direzione)){
+
+if(ultimaPosizioneGps){
+
+direzione = calcolaBearing(
+
+ultimaPosizioneGps.lat,
+
+ultimaPosizioneGps.lon,
+
+lat,
+
+lon
+
+);
+
+}
+else{
+
+direzione = 0;
+
+}
+
+}
+
+
+aggiornaMarkerPosizione(lat,lon,direzione);
+
+
+if(seguiPosizione){
+
+map.setView([lat,lon],17);
+
+}
+
+
+/****************************************************
+    CONTROLLO SCOSTAMENTO DAL PERCORSO
+****************************************************/
+
+const puntoVicino =
+trovaPuntoPiuVicino(puntiPercorso,lat,lon);
+
+
+if(puntoVicino.distanza > SOGLIA_RICALCOLO_METRI){
+
+contatoreFuoriPercorso++;
+
+
+if(contatoreFuoriPercorso >= LETTURE_FUORI_PERCORSO_PER_RICALCOLO){
+
+contatoreFuoriPercorso = 0;
+
+ricalcolaPercorso(lat,lon);
+
+}
+
+}
+else{
+
+contatoreFuoriPercorso = 0;
+
+}
+
+
+/****************************************************
+    AVANZAMENTO TRA LE ISTRUZIONI
+****************************************************/
+
+while(
+
+indiceIstruzioneCorrente < istruzioni.length - 1 &&
+
+distanzaMetri(
+
+lat,
+
+lon,
+
+istruzioni[indiceIstruzioneCorrente].lat,
+
+istruzioni[indiceIstruzioneCorrente].lon
+
+) < SOGLIA_AVANZAMENTO_METRI
+
+){
+
+indiceIstruzioneCorrente++;
+
+}
+
+
+aggiornaPannelloNavigazione(lat,lon,velocitaMs);
+
+
+ultimaPosizioneGps = {lat,lon};
+
+}
+
+/****************************************************
+        AGGIORNAMENTO PANNELLO DI NAVIGAZIONE
+****************************************************/
+
+function aggiornaPannelloNavigazione(lat,lon,velocitaMs){
+
+const istruzioneCorrente =
+istruzioni[indiceIstruzioneCorrente];
+
+const elMessaggio =
+document.getElementById("messaggioNavigazione");
+
+const elDistanzaManovra =
+document.getElementById("distanzaManovra");
+
+const elStrada =
+document.getElementById("stradaAttuale");
+
+const elVelocita =
+document.getElementById("velocitaAttuale");
+
+const elRimanente =
+document.getElementById("infoRimanente");
+
+const elIcona =
+document.getElementById("iconaManovra");
+
+
+if(istruzioneCorrente){
+
+const distanzaManovra =
+distanzaMetri(
+
+lat,
+
+lon,
+
+istruzioneCorrente.lat,
+
+istruzioneCorrente.lon
+
+);
+
+elMessaggio.innerText =
+istruzioneCorrente.messaggio;
+
+elDistanzaManovra.innerText =
+"Tra " + formattaDistanza(distanzaManovra);
+
+elIcona.innerText =
+mappaIconaManovra(istruzioneCorrente.manovra);
+
+}
+else{
+
+elMessaggio.innerText =
+"Sei arrivato a destinazione";
+
+elDistanzaManovra.innerText = "";
+
+elIcona.innerText = "🏁";
+
+}
+
+
+const istruzionePrecedente =
+istruzioni[indiceIstruzioneCorrente - 1];
+
+elStrada.innerText =
+(istruzionePrecedente && istruzionePrecedente.strada) ?
+
+("Su: " + istruzionePrecedente.strada) :
+
+"";
+
+
+const velocitaKmh =
+(velocitaMs && velocitaMs > 0) ?
+
+Math.round(velocitaMs * 3.6) :
+
+0;
+
+elVelocita.innerText =
+velocitaKmh + " km/h";
+
+
+const puntoVicino =
+trovaPuntoPiuVicino(puntiPercorso,lat,lon);
+
+const distanzaRimanente =
+distanzaRimanenteMetri(puntiPercorso,puntoVicino.indice);
+
+const velocitaStimataMs =
+(velocitaMs && velocitaMs > 1) ?
+
+velocitaMs :
+
+(60 * 1000 / 3600);
+
+const secondiRimanenti =
+distanzaRimanente / velocitaStimataMs;
+
+elRimanente.innerText =
+
+formattaDistanza(distanzaRimanente) +
+
+" · " +
+
+formattaTempo(secondiRimanenti);
+
+}
+
+function mappaIconaManovra(manovra){
+
+if(!manovra){
+
+return "⬆️";
+
+}
+
+
+const m = manovra.toUpperCase();
+
+
+if(m.includes("LEFT")){
+
+return "⬅️";
+
+}
+
+if(m.includes("RIGHT")){
+
+return "➡️";
+
+}
+
+if(m.includes("ROUNDABOUT")){
+
+return "🔄";
+
+}
+
+if(m.includes("UTURN")){
+
+return "↩️";
+
+}
+
+if(m.includes("ARRIVE")){
+
+return "🏁";
+
+}
+
+
+return "⬆️";
+
+}
+
+function formattaDistanza(metri){
+
+if(metri < 1000){
+
+return Math.round(metri) + " m";
+
+}
+
+return (metri/1000).toFixed(1) + " km";
+
+}
+
+function formattaTempo(secondi){
+
+const ore = Math.floor(secondi/3600);
+
+const minuti = Math.round((secondi%3600)/60);
+
+if(ore > 0){
+
+return ore + "h " + minuti + "min";
+
+}
+
+return minuti + " min";
+
+}
+
+/****************************************************
+    MARKER POSIZIONE UTENTE (FRECCIA DIREZIONE)
+****************************************************/
+
+function creaIconaNavigazione(direzione){
+
+return L.divIcon({
+
+className:"",
+
+html:
+
+`<div class="freccia-navigazione" style="transform:rotate(${direzione}deg)">▲</div>`,
+
+iconSize:[40,40],
+
+iconAnchor:[20,20]
+
+});
+
+}
+
+function aggiornaMarkerPosizione(lat,lon,direzione){
+
+const icona = creaIconaNavigazione(direzione);
+
+
+if(!markerPosizioneUtente){
+
+markerPosizioneUtente =
+L.marker([lat,lon],{icon:icona,zIndexOffset:1000}).addTo(map);
+
+}
+else{
+
+markerPosizioneUtente.setLatLng([lat,lon]);
+
+markerPosizioneUtente.setIcon(icona);
+
+}
+
+}
+
+/****************************************************
+        RICENTRA MAPPA SULLA POSIZIONE
+****************************************************/
+
+function ricentraMappa(){
+
+seguiPosizione = true;
+
+document.getElementById("btnCentra").style.display = "none";
+
+
+if(ultimaPosizioneGps){
+
+map.setView(
+
+[ultimaPosizioneGps.lat,ultimaPosizioneGps.lon],
+
+17
+
+);
+
+}
+
+}
+
+map.on("dragstart",()=>{
+
+if(navigazioneAttiva){
+
+seguiPosizione = false;
+
+document.getElementById("btnCentra").style.display = "block";
+
+}
+
+});
+
+/****************************************************
+        FUNZIONI GEOMETRICHE DI SUPPORTO
+****************************************************/
+
+function distanzaMetri(lat1,lon1,lat2,lon2){
+
+return L.latLng(lat1,lon1).distanceTo(
+
+L.latLng(lat2,lon2)
+
+);
+
+}
+
+function calcolaBearing(lat1,lon1,lat2,lon2){
+
+const rad = Math.PI / 180;
+
+const y =
+Math.sin((lon2-lon1)*rad) * Math.cos(lat2*rad);
+
+const x =
+Math.cos(lat1*rad) * Math.sin(lat2*rad) -
+
+Math.sin(lat1*rad) * Math.cos(lat2*rad) *
+
+Math.cos((lon2-lon1)*rad);
+
+const bearing = Math.atan2(y,x) / rad;
+
+return (bearing + 360) % 360;
+
+}
+
+function trovaPuntoPiuVicino(punti,lat,lon){
+
+let indiceMin = 0;
+
+let distanzaMin = Infinity;
+
+
+punti.forEach((p,indice)=>{
+
+const d = distanzaMetri(lat,lon,p[0],p[1]);
+
+if(d < distanzaMin){
+
+distanzaMin = d;
+
+indiceMin = indice;
+
+}
+
+});
+
+
+return{
+
+indice:indiceMin,
+
+distanza:distanzaMin
+
+};
+
+}
+
+function distanzaRimanenteMetri(punti,indice){
+
+let totale = 0;
+
+
+for(let i=indice; i<punti.length-1; i++){
+
+totale += distanzaMetri(
+
+punti[i][0],
+
+punti[i][1],
+
+punti[i+1][0],
+
+punti[i+1][1]
+
+);
+
+}
+
+
+return totale;
+
+}
+
+/****************************************************
+        PULIZIA MAPPA
+****************************************************/
+
+function pulisciMappa(){
+
+if(navigazioneAttiva){
+
+terminaNavigazione();
+
+}
+
+
+if(percorsoLayer){
+
+map.removeLayer(percorsoLayer);
+
+percorsoLayer=null;
+
+}
+
+
+if(markerPartenza){
+
+map.removeLayer(markerPartenza);
+
+markerPartenza=null;
+
+}
+
+
+if(markerArrivo){
+
+map.removeLayer(markerArrivo);
+
+markerArrivo=null;
+
+}
+
+
+puntiPercorso = [];
+
+istruzioni = [];
+
+indiceIstruzioneCorrente = 0;
+
+arrivoCorrente = null;
+
+document.getElementById("btnAvviaNavigazione").disabled = true;
+
+
+document.getElementById("risultato").innerText =
+"Percorso cancellato";
+
+
+}
+
+/****************************************************
+        FUNZIONI EXTRA E SICUREZZA
+****************************************************/
+
+function infoSistema(){
+
+console.log(
+"Navigatore camion TomTom avviato correttamente"
+);
+
+}
+
+/****************************************************
+        AVVIO
+****************************************************/
+
+configuraAutocomplete("partenza");
+
+configuraAutocomplete("arrivo");
+
+infoSistema();
+
+</script>
+
+</body>
+
+</html>
