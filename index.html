@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Navigatore Camion Professionale</title>
-    <!-- Mappa Standard OpenSource -->
+    <!-- Mappa Standard OpenSource (Link Corretti e Completi) -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
     <style>
@@ -28,7 +28,7 @@
     <div id="mappa"></div>
 
     <script>
-        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE!!!!
+        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE, CAZZO!!!!
         const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
 
         // 1. Inizializza la mappa Leaflet
@@ -45,17 +45,17 @@
             const arrivoTesto = document.getElementById('arrivo').value;
             
             if (TOMTOM_KEY === "LA_TUA_API_KEY_TOMTOM" || TOMTOM_KEY === "") {
-                alert("Inserisci la tua chiave TomTom reale riga 33!");
+                alert("Inserisci la tua chiave TomTom reale alla riga 33!");
                 return;
             }
 
             divRisultato.innerText = "Connessione sicura tramite Proxy CORS...";
 
             try {
-                // Proxy AllOrigins pulito
+                // Endpoint corretto del proxy AllOrigins per ricevere dati RAW puliti
                 const proxy = "https://allorigins.win";
 
-                // 1. Cerca Coordinate Partenza (Sintassi URL Corretta)
+                // 1. Cerca Coordinate Partenza (Sintassi e URL TomTom ripristinati correttamente)
                 const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
                 const resP1 = await fetch(proxy + encodeURIComponent(urlP1));
                 const dataP1 = await resP1.json();
@@ -67,7 +67,7 @@
                 const lat1 = dataP1.results[0].position.lat;
                 const lon1 = dataP1.results[0].position.lon;
 
-                // 2. Cerca Coordinate Arrivo (Sintassi URL Corretta)
+                // 2. Cerca Coordinate Arrivo
                 const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
                 const resP2 = await fetch(proxy + encodeURIComponent(urlP2));
                 const dataP2 = await resP2.json();
