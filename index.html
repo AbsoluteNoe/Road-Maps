@@ -331,11 +331,25 @@ button:disabled{
 
     justify-content:space-between;
 
+    align-items:center;
+
     margin-top:10px;
 
     font-size:14px;
 
     color:#ddd;
+
+}
+
+#limiteMezzoP{
+
+    font-weight:bold;
+
+    color:#ff6b6b;
+
+    text-align:center;
+
+    flex:1;
 
 }
 
@@ -481,6 +495,8 @@ Prosegui dritto
 <div class="riga-info">
 
 <span id="velocitaAttuale">0 km/h</span>
+
+<span id="limiteMezzoP">Limite camion: 90 km/h</span>
 
 <span id="infoRimanente"></span>
 
@@ -916,7 +932,54 @@ return lista;
 }
 
 /****************************************************
-            ROUTING CAMION TOMTOM
+        FUNZIONE PULISCI MAPPA (MODIFICATA)
+****************************************************/
+
+function pulisciMappa(){
+
+// Reset dei campi di testo
+document.getElementById("partenza").value = "";
+
+document.getElementById("arrivo").value = "";
+
+// Reset dello stato selezioni
+luoghiSelezionati.partenza = null;
+
+luoghiSelezionati.arrivo = null;
+
+// Reset della mappa
+if(markerPartenza) map.removeLayer(markerPartenza);
+
+if(markerArrivo) map.removeLayer(markerArrivo);
+
+if(percorsoLayer) map.removeLayer(percorsoLayer);
+
+markerPartenza = null;
+
+markerArrivo = null;
+
+percorsoLayer = null;
+
+// Reset altre variabili
+puntiPercorso = [];
+
+istruzioni = [];
+
+indiceIstruzioneCorrente = 0;
+
+document.getElementById("risultato").innerText = "";
+
+document.getElementById("btnAvviaNavigazione").disabled = true;
+
+// Nascondi il pannello di navigazione se attivo
+document.getElementById("pannelloNavigazione").style.display = "none";
+
+navigazioneAttiva = false;
+
+}
+
+/****************************************************
+             ROUTING CAMION TOMTOM
 ****************************************************/
 
 async function calcolaPercorso(){
@@ -993,345 +1056,72 @@ risultato.innerText =
 
 const urlRouting =
 
-`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4&instructionsType=text&language=it-IT`;
+`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&computeBestOrder=false&routeType=fastest&language=it-IT`;
 
-
-const rispostaRouting =
-await fetch(urlRouting);
-
+const rispostaRouting = await fetch(urlRouting);
 
 if(!rispostaRouting.ok){
 
-throw new Error(
-"Errore nel calcolo percorso"
-);
+throw new Error("Errore calcolo percorso");
 
 }
 
+const datiRouting = await rispostaRouting.json();
 
-const datiRouting =
-await rispostaRouting.json();
+if(!datiRouting.routes || !datiRouting.routes.length){
 
-if(
-!datiRouting.routes ||
-datiRouting.routes.length===0
-){
-
-risultato.innerText =
-"Nessun percorso trovato per camion.";
-
-return;
+throw new Error("Nessun percorso disponibile");
 
 }
 
+const route = datiRouting.routes[0];
 
-
-const route =
-datiRouting.routes[0];
-
-
-const distanzaKm =
-(
-route.summary.lengthInMeters / 1000
-).toFixed(1);
-
-const secondi =
-route.summary.travelTimeInSeconds;
-
-
-const ore =
-Math.floor(secondi / 3600);
-
-
-const minuti =
-Math.round(
-(secondi % 3600) / 60
-);
-
-
-
-risultato.innerText =
-
-`🚚 ${distanzaKm} km - Tempo stimato ${ore}h ${minuti}min`;
-
-
-if(percorsoLayer){
-
-map.removeLayer(percorsoLayer);
-
-}
-
-
-if(markerPartenza){
-
-map.removeLayer(markerPartenza);
-
-}
-
-
-if(markerArrivo){
-
-map.removeLayer(markerArrivo);
-
-}
-
-
-markerPartenza = L.marker(
-
-[
-puntoPartenza.lat,
-puntoPartenza.lon
-]
-
+puntiPercorso = route.legs.flatMap(gamba=>
+gamba.points.map(p=>
+[p.latitude,p.longitude]
 )
-
-.addTo(map)
-
-.bindPopup(
-"Partenza: " + partenza
 );
-
-
-
-markerArrivo = L.marker(
-[
-puntoArrivo.lat,
-puntoArrivo.lon
-]
-
-)
-
-.addTo(map)
-
-.bindPopup(
-"Arrivo: " + arrivo
-);
-
-
-
-let punti=[];
-
-
-if(
-route.legs &&
-route.legs.length>0
-){
-
-
-route.legs.forEach(leg=>{
-
-
-if(leg.points){
-
-
-leg.points.forEach(p=>{
-
-
-punti.push([
-
-p.latitude,
-
-p.longitude
-
-]);
-});
-
-
-}
-
-
-});
-
-
-}
-
-
-
-if(punti.length===0){
-
-throw new Error(
-"Nessuna geometria percorso ricevuta"
-);
-
-}
-
-
-
-percorsoLayer =
-L.polyline(
-
-punti,
-
-{
-
-color:"#e67e22",
-
-weight:6,
-
-opacity:0.9
-
-}
-
-)
-
-.addTo(map);
-
-
-
-map.fitBounds(
-percorsoLayer.getBounds()
-);
-
-
-/****************************************************
-    SALVATAGGIO STATO PER LA NAVIGAZIONE
-****************************************************/
-
-puntiPercorso = punti;
 
 istruzioni = estraiIstruzioni(route);
 
-indiceIstruzioneCorrente = 0;
-
 arrivoCorrente = puntoArrivo;
 
-contatoreFuoriPercorso = 0;
+// Visualizza sulla mappa
+const distanzaTotaleKm = Math.round(route.summary.lengthInMeters/1000);
+
+const tempoTotaleMinuti = Math.round(route.summary.travelTimeInSeconds/60);
+
+risultato.innerHTML = `
+✓ Percorso trovato!<br>
+Distanza: ${distanzaTotaleKm} km<br>
+Tempo stimato: ${tempoTotaleMinuti} minuti
+`;
+
+// Marker partenza
+markerPartenza = L.marker([puntoPartenza.lat, puntoPartenza.lon])
+.bindPopup("Partenza")
+.addTo(map);
+
+// Marker arrivo
+markerArrivo = L.marker([puntoArrivo.lat, puntoArrivo.lon])
+.bindPopup("Arrivo")
+.addTo(map);
+
+// Polilinea percorso
+percorsoLayer = L.polyline(puntiPercorso,{
+color:"#e67e22",
+weight:4,
+opacity:0.8
+}).addTo(map);
+
+map.fitBounds(percorsoLayer.getBounds(),{padding:[50,50]});
 
 document.getElementById("btnAvviaNavigazione").disabled = false;
 
 }
-
 catch(errore){
 
-
-console.error(errore);
-
-
-risultato.innerText =
-"Errore: " + errore.message;
-
-
-}
-
-
-}
-
-/****************************************************
-        RICALCOLO AUTOMATICO DEL PERCORSO
-****************************************************/
-
-async function ricalcolaPercorso(lat,lon){
-
-if(!arrivoCorrente){
-
-return;
-
-}
-
-
-try{
-
-document.getElementById("messaggioNavigazione").innerText =
-"Ricalcolo percorso...";
-
-
-const urlRouting =
-
-`https://api.tomtom.com/routing/1/calculateRoute/${lat},${lon}:${arrivoCorrente.lat},${arrivoCorrente.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4&instructionsType=text&language=it-IT`;
-
-
-const rispostaRouting =
-await fetch(urlRouting);
-
-
-if(!rispostaRouting.ok){
-
-throw new Error("Errore nel ricalcolo del percorso");
-
-}
-
-
-const datiRouting =
-await rispostaRouting.json();
-
-
-if(!datiRouting.routes || !datiRouting.routes.length){
-
-throw new Error("Nessun percorso alternativo trovato");
-
-}
-
-
-const route = datiRouting.routes[0];
-
-
-let nuoviPunti = [];
-
-
-if(route.legs){
-
-route.legs.forEach(leg=>{
-
-if(leg.points){
-
-leg.points.forEach(p=>{
-
-nuoviPunti.push([p.latitude,p.longitude]);
-
-});
-
-}
-
-});
-
-}
-
-
-if(nuoviPunti.length===0){
-
-throw new Error("Geometria del nuovo percorso non disponibile");
-
-}
-
-
-puntiPercorso = nuoviPunti;
-
-
-if(percorsoLayer){
-
-map.removeLayer(percorsoLayer);
-
-}
-
-
-percorsoLayer =
-L.polyline(
-
-puntiPercorso,
-
-{
-
-color:"#e67e22",
-
-weight:6,
-
-opacity:0.9
-
-}
-
-)
-
-.addTo(map);
-
-
-istruzioni = estraiIstruzioni(route);
-
-indiceIstruzioneCorrente = 0;
-
-contatoreFuoriPercorso = 0;
-
-}
-catch(errore){
+risultato.innerText = "Errore: " + errore.message;
 
 console.error(errore);
 
@@ -1340,7 +1130,7 @@ console.error(errore);
 }
 
 /****************************************************
-        NAVIGAZIONE GPS SVOLTA-PER-SVOLTA
+            AVVIA NAVIGAZIONE GPS
 ****************************************************/
 
 function avviaNavigazione(){
@@ -1353,59 +1143,262 @@ return;
 
 }
 
+navigazioneAttiva = true;
 
-if(!navigator.geolocation){
+indiceIstruzioneCorrente = 0;
 
-alert("Questo dispositivo/browser non supporta il GPS.");
+document.getElementById("pannelloNavigazione").style.display = "block";
+
+document.getElementById("btnCentra").style.display = "block";
+
+if(navigator.geolocation){
+
+watchIdNavigazione = navigator.geolocation.watchPosition(
+aggiornaNavigazione,
+err=>console.error(err),
+{enableHighAccuracy:true, timeout:10000}
+);
+
+}else{
+
+alert("Geolocalizzazione non disponibile");
+
+}
+
+}
+
+/****************************************************
+          AGGIORNAMENTO NAVIGAZIONE GPS
+****************************************************/
+
+function aggiornaNavigazione(posizione){
+
+const coords = posizione.coords;
+
+ultimaPosizioneGps = {
+lat:coords.latitude,
+lon:coords.longitude,
+precisione:coords.accuracy
+};
+
+// Aggiorna marker posizione utente
+if(!markerPosizioneUtente){
+
+markerPosizioneUtente = L.marker([coords.latitude, coords.longitude],{
+icon:L.divIcon({
+className:"freccia-navigazione",
+html:"⬆️"
+})
+}).addTo(map);
+
+}else{
+
+markerPosizioneUtente.setLatLng([coords.latitude, coords.longitude]);
+
+}
+
+// Centra mappa se seguiPosizione attivo
+if(seguiPosizione){
+
+map.setView([coords.latitude, coords.longitude],17);
+
+}
+
+// Controlla se fuori percorso
+const distanzaMinima = Math.min(
+...puntiPercorso.map(p=>
+calcDistanza(coords.latitude, coords.longitude, p[0], p[1])
+)
+);
+
+if(distanzaMinima > SOGLIA_RICALCOLO_METRI){
+
+contatoreFuoriPercorso++;
+
+if(contatoreFuoriPercorso >= LETTURE_FUORI_PERCORSO_PER_RICALCOLO){
+
+console.log("Fuori percorso! Ricalcolo...");
+
+ricalcolaPercorso();
+
+}
+
+}else{
+
+contatoreFuoriPercorso = 0;
+
+}
+
+// Avanza istruzione se raggiunto il waypoint
+if(istruzioni.length && indiceIstruzioneCorrente < istruzioni.length){
+
+const istrCorrente = istruzioni[indiceIstruzioneCorrente];
+
+const distanzaIstruzione = calcDistanza(
+coords.latitude,
+coords.longitude,
+istrCorrente.lat,
+istrCorrente.lon
+);
+
+if(distanzaIstruzione < SOGLIA_AVANZAMENTO_METRI){
+
+indiceIstruzioneCorrente++;
+
+}
+
+}
+
+// Aggiorna pannello
+aggiornaPannelloNavigazione(coords);
+
+}
+
+/****************************************************
+        AGGIORNA PANNELLO NAVIGAZIONE
+****************************************************/
+
+function aggiornaPannelloNavigazione(coords){
+
+const pannello = document.getElementById("pannelloNavigazione");
+
+if(indiceIstruzioneCorrente >= istruzioni.length){
+
+pannello.innerHTML = `
+<div style="text-align:center; font-size:20px; color:#f1c40f; font-weight:bold;">
+✓ Destinazione raggiunta!
+</div>
+<button class="btn-termina" onclick="terminaNavigazione()">
+✕ Chiudi
+</button>
+`;
 
 return;
 
 }
 
+const istrCorrente = istruzioni[indiceIstruzioneCorrente];
 
-navigazioneAttiva = true;
+const distanzaRimanente = istruzioni
+.slice(indiceIstruzioneCorrente)
+.reduce((sum,istr,i)=>{
 
-seguiPosizione = true;
+if(i===0) return sum;
+
+const prev = istruzioni[indiceIstruzioneCorrente + i - 1];
+
+return sum + calcDistanza(prev.lat, prev.lon, istr.lat, istr.lon);
+
+},0) + calcDistanza(coords.latitude, coords.longitude, istrCorrente.lat, istrCorrente.lon);
+
+const velocita = Math.round(coords.speed * 3.6) || 0;
+
+const limiteCamion = 90; // km/h
+
+document.getElementById("iconaManovra").innerText = getManovra(istrCorrente.manovra);
+
+document.getElementById("messaggioNavigazione").innerText = istrCorrente.messaggio;
+
+document.getElementById("distanzaManovra").innerText = distanzaRimanente < 1000 ? 
+Math.round(distanzaRimanente) + " m" : 
+(distanzaRimanente/1000).toFixed(1) + " km";
+
+document.getElementById("stradaAttuale").innerText = "Strada: " + (istrCorrente.strada || "???");
+
+document.getElementById("velocitaAttuale").innerText = velocita + " km/h";
+
+document.getElementById("limiteMezzoP").innerText = "Limite camion: " + limiteCamion + " km/h";
+
+document.getElementById("infoRimanente").innerText = arrivoCorrente ? "A: " + arrivoCorrente.etichetta : "";
+
+}
+
+function getManovra(manovra){
+
+const mappe = {
+"TURN_LEFT":"↙️",
+"TURN_RIGHT":"↘️",
+"TURN_SHARP_LEFT":"⬅️",
+"TURN_SHARP_RIGHT":"➡️",
+"TURN_SLIGHT_LEFT":"↖️",
+"TURN_SLIGHT_RIGHT":"↗️",
+"KEEP_LEFT":"↙️",
+"KEEP_RIGHT":"↘️",
+"GO_STRAIGHT":"⬆️",
+"ROUNDABOUT_LEFT":"↙️",
+"ROUNDABOUT_RIGHT":"↘️",
+"FORK_LEFT":"↙️",
+"FORK_RIGHT":"↘️"
+};
+
+return mappe[manovra] || "⬆️";
+
+}
+
+/****************************************************
+          RICALCOLO PERCORSO DINAMICO
+****************************************************/
+
+async function ricalcolaPercorso(){
+
+terminaNavigazione();
+
+try{
+
+const puntoPartenza = ultimaPosizioneGps;
+
+const puntoArrivo = arrivoCorrente;
+
+const urlRouting =
+
+`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&routeType=fastest&language=it-IT`;
+
+const rispostaRouting = await fetch(urlRouting);
+
+const datiRouting = await rispostaRouting.json();
+
+const route = datiRouting.routes[0];
+
+puntiPercorso = route.legs.flatMap(gamba=>
+gamba.points.map(p=>
+[p.latitude,p.longitude]
+)
+);
+
+istruzioni = estraiIstruzioni(route);
 
 indiceIstruzioneCorrente = 0;
 
 contatoreFuoriPercorso = 0;
 
-ultimaPosizioneGps = null;
+// Aggiorna polilinea
+if(percorsoLayer) map.removeLayer(percorsoLayer);
 
+percorsoLayer = L.polyline(puntiPercorso,{
+color:"#e67e22",
+weight:4,
+opacity:0.8
+}).addTo(map);
 
-document.getElementById("pannelloNavigazione").style.display = "block";
+// Riavvia navigazione
+avviaNavigazione();
 
-document.getElementById("controlli").style.display = "none";
+}
+catch(errore){
 
-document.getElementById("btnCentra").style.display = "none";
-
-
-watchIdNavigazione =
-navigator.geolocation.watchPosition(
-
-onPosizioneAggiornata,
-
-onErroreGeolocalizzazione,
-
-{
-
-enableHighAccuracy:true,
-
-maximumAge:1000,
-
-timeout:20000
+console.error("Errore ricalcolo percorso:", errore);
 
 }
 
-);
-
 }
+
+/****************************************************
+            TERMINA NAVIGAZIONE
+****************************************************/
 
 function terminaNavigazione(){
 
 navigazioneAttiva = false;
-
 
 if(watchIdNavigazione !== null){
 
@@ -1415,14 +1408,6 @@ watchIdNavigazione = null;
 
 }
 
-
-document.getElementById("pannelloNavigazione").style.display = "none";
-
-document.getElementById("controlli").style.display = "block";
-
-document.getElementById("btnCentra").style.display = "none";
-
-
 if(markerPosizioneUtente){
 
 map.removeLayer(markerPosizioneUtente);
@@ -1431,573 +1416,54 @@ markerPosizioneUtente = null;
 
 }
 
+document.getElementById("pannelloNavigazione").style.display = "none";
 
-if(percorsoLayer){
+document.getElementById("btnCentra").style.display = "none";
 
-map.fitBounds(percorsoLayer.getBounds());
-
-}
-
-}
-
-function onErroreGeolocalizzazione(errore){
-
-console.error(errore);
-
-alert("Impossibile ottenere la posizione GPS: " + errore.message);
-
-terminaNavigazione();
-
-}
-
-function onPosizioneAggiornata(posizione){
-
-const lat = posizione.coords.latitude;
-
-const lon = posizione.coords.longitude;
-
-const velocitaMs = posizione.coords.speed;
-
-let direzione = posizione.coords.heading;
-
-
-if(direzione === null || isNaN(direzione)){
-
-if(ultimaPosizioneGps){
-
-direzione = calcolaBearing(
-
-ultimaPosizioneGps.lat,
-
-ultimaPosizioneGps.lon,
-
-lat,
-
-lon
-
-);
-
-}
-else{
-
-direzione = 0;
-
-}
-
-}
-
-
-aggiornaMarkerPosizione(lat,lon,direzione);
-
-
-if(seguiPosizione){
-
-map.setView([lat,lon],17);
-
-}
-
-
-/****************************************************
-    CONTROLLO SCOSTAMENTO DAL PERCORSO
-****************************************************/
-
-const puntoVicino =
-trovaPuntoPiuVicino(puntiPercorso,lat,lon);
-
-
-if(puntoVicino.distanza > SOGLIA_RICALCOLO_METRI){
-
-contatoreFuoriPercorso++;
-
-
-if(contatoreFuoriPercorso >= LETTURE_FUORI_PERCORSO_PER_RICALCOLO){
-
-contatoreFuoriPercorso = 0;
-
-ricalcolaPercorso(lat,lon);
-
-}
-
-}
-else{
-
-contatoreFuoriPercorso = 0;
-
-}
-
-
-/****************************************************
-    AVANZAMENTO TRA LE ISTRUZIONI
-****************************************************/
-
-while(
-
-indiceIstruzioneCorrente < istruzioni.length - 1 &&
-
-distanzaMetri(
-
-lat,
-
-lon,
-
-istruzioni[indiceIstruzioneCorrente].lat,
-
-istruzioni[indiceIstruzioneCorrente].lon
-
-) < SOGLIA_AVANZAMENTO_METRI
-
-){
-
-indiceIstruzioneCorrente++;
-
-}
-
-
-aggiornaPannelloNavigazione(lat,lon,velocitaMs);
-
-
-ultimaPosizioneGps = {lat,lon};
+seguiPosizione = true;
 
 }
 
 /****************************************************
-        AGGIORNAMENTO PANNELLO DI NAVIGAZIONE
-****************************************************/
-
-function aggiornaPannelloNavigazione(lat,lon,velocitaMs){
-
-const istruzioneCorrente =
-istruzioni[indiceIstruzioneCorrente];
-
-const elMessaggio =
-document.getElementById("messaggioNavigazione");
-
-const elDistanzaManovra =
-document.getElementById("distanzaManovra");
-
-const elStrada =
-document.getElementById("stradaAttuale");
-
-const elVelocita =
-document.getElementById("velocitaAttuale");
-
-const elRimanente =
-document.getElementById("infoRimanente");
-
-const elIcona =
-document.getElementById("iconaManovra");
-
-
-if(istruzioneCorrente){
-
-const distanzaManovra =
-distanzaMetri(
-
-lat,
-
-lon,
-
-istruzioneCorrente.lat,
-
-istruzioneCorrente.lon
-
-);
-
-elMessaggio.innerText =
-istruzioneCorrente.messaggio;
-
-elDistanzaManovra.innerText =
-"Tra " + formattaDistanza(distanzaManovra);
-
-elIcona.innerText =
-mappaIconaManovra(istruzioneCorrente.manovra);
-
-}
-else{
-
-elMessaggio.innerText =
-"Sei arrivato a destinazione";
-
-elDistanzaManovra.innerText = "";
-
-elIcona.innerText = "🏁";
-
-}
-
-
-const istruzionePrecedente =
-istruzioni[indiceIstruzioneCorrente - 1];
-
-elStrada.innerText =
-(istruzionePrecedente && istruzionePrecedente.strada) ?
-
-("Su: " + istruzionePrecedente.strada) :
-
-"";
-
-
-const velocitaKmh =
-(velocitaMs && velocitaMs > 0) ?
-
-Math.round(velocitaMs * 3.6) :
-
-0;
-
-elVelocita.innerText =
-velocitaKmh + " km/h";
-
-
-const puntoVicino =
-trovaPuntoPiuVicino(puntiPercorso,lat,lon);
-
-const distanzaRimanente =
-distanzaRimanenteMetri(puntiPercorso,puntoVicino.indice);
-
-const velocitaStimataMs =
-(velocitaMs && velocitaMs > 1) ?
-
-velocitaMs :
-
-(60 * 1000 / 3600);
-
-const secondiRimanenti =
-distanzaRimanente / velocitaStimataMs;
-
-elRimanente.innerText =
-
-formattaDistanza(distanzaRimanente) +
-
-" · " +
-
-formattaTempo(secondiRimanenti);
-
-}
-
-function mappaIconaManovra(manovra){
-
-if(!manovra){
-
-return "⬆️";
-
-}
-
-
-const m = manovra.toUpperCase();
-
-
-if(m.includes("LEFT")){
-
-return "⬅️";
-
-}
-
-if(m.includes("RIGHT")){
-
-return "➡️";
-
-}
-
-if(m.includes("ROUNDABOUT")){
-
-return "🔄";
-
-}
-
-if(m.includes("UTURN")){
-
-return "↩️";
-
-}
-
-if(m.includes("ARRIVE")){
-
-return "🏁";
-
-}
-
-
-return "⬆️";
-
-}
-
-function formattaDistanza(metri){
-
-if(metri < 1000){
-
-return Math.round(metri) + " m";
-
-}
-
-return (metri/1000).toFixed(1) + " km";
-
-}
-
-function formattaTempo(secondi){
-
-const ore = Math.floor(secondi/3600);
-
-const minuti = Math.round((secondi%3600)/60);
-
-if(ore > 0){
-
-return ore + "h " + minuti + "min";
-
-}
-
-return minuti + " min";
-
-}
-
-/****************************************************
-    MARKER POSIZIONE UTENTE (FRECCIA DIREZIONE)
-****************************************************/
-
-function creaIconaNavigazione(direzione){
-
-return L.divIcon({
-
-className:"",
-
-html:
-
-`<div class="freccia-navigazione" style="transform:rotate(${direzione}deg)">▲</div>`,
-
-iconSize:[40,40],
-
-iconAnchor:[20,20]
-
-});
-
-}
-
-function aggiornaMarkerPosizione(lat,lon,direzione){
-
-const icona = creaIconaNavigazione(direzione);
-
-
-if(!markerPosizioneUtente){
-
-markerPosizioneUtente =
-L.marker([lat,lon],{icon:icona,zIndexOffset:1000}).addTo(map);
-
-}
-else{
-
-markerPosizioneUtente.setLatLng([lat,lon]);
-
-markerPosizioneUtente.setIcon(icona);
-
-}
-
-}
-
-/****************************************************
-        RICENTRA MAPPA SULLA POSIZIONE
+              FUNZIONI UTILITY
 ****************************************************/
 
 function ricentraMappa(){
 
-seguiPosizione = true;
-
-document.getElementById("btnCentra").style.display = "none";
-
-
 if(ultimaPosizioneGps){
 
-map.setView(
-
-[ultimaPosizioneGps.lat,ultimaPosizioneGps.lon],
-
-17
-
-);
+map.setView([ultimaPosizioneGps.lat, ultimaPosizioneGps.lon],17);
 
 }
 
 }
 
-map.on("dragstart",()=>{
+function calcDistanza(lat1,lon1,lat2,lon2){
 
-if(navigazioneAttiva){
+const R = 6371000; // raggio Terra in metri
 
-seguiPosizione = false;
+const dLat = (lat2-lat1)*Math.PI/180;
 
-document.getElementById("btnCentra").style.display = "block";
+const dLon = (lon2-lon1)*Math.PI/180;
 
-}
+const a =
+Math.sin(dLat/2)*Math.sin(dLat/2) +
+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)*Math.sin(dLon/2);
 
-});
+const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 
-/****************************************************
-        FUNZIONI GEOMETRICHE DI SUPPORTO
-****************************************************/
-
-function distanzaMetri(lat1,lon1,lat2,lon2){
-
-return L.latLng(lat1,lon1).distanceTo(
-
-L.latLng(lat2,lon2)
-
-);
-
-}
-
-function calcolaBearing(lat1,lon1,lat2,lon2){
-
-const rad = Math.PI / 180;
-
-const y =
-Math.sin((lon2-lon1)*rad) * Math.cos(lat2*rad);
-
-const x =
-Math.cos(lat1*rad) * Math.sin(lat2*rad) -
-
-Math.sin(lat1*rad) * Math.cos(lat2*rad) *
-
-Math.cos((lon2-lon1)*rad);
-
-const bearing = Math.atan2(y,x) / rad;
-
-return (bearing + 360) % 360;
-
-}
-
-function trovaPuntoPiuVicino(punti,lat,lon){
-
-let indiceMin = 0;
-
-let distanzaMin = Infinity;
-
-
-punti.forEach((p,indice)=>{
-
-const d = distanzaMetri(lat,lon,p[0],p[1]);
-
-if(d < distanzaMin){
-
-distanzaMin = d;
-
-indiceMin = indice;
-
-}
-
-});
-
-
-return{
-
-indice:indiceMin,
-
-distanza:distanzaMin
-
-};
-
-}
-
-function distanzaRimanenteMetri(punti,indice){
-
-let totale = 0;
-
-
-for(let i=indice; i<punti.length-1; i++){
-
-totale += distanzaMetri(
-
-punti[i][0],
-
-punti[i][1],
-
-punti[i+1][0],
-
-punti[i+1][1]
-
-);
-
-}
-
-
-return totale;
+return R*c;
 
 }
 
 /****************************************************
-        PULIZIA MAPPA
-****************************************************/
-
-function pulisciMappa(){
-
-if(navigazioneAttiva){
-
-terminaNavigazione();
-
-}
-
-
-if(percorsoLayer){
-
-map.removeLayer(percorsoLayer);
-
-percorsoLayer=null;
-
-}
-
-
-if(markerPartenza){
-
-map.removeLayer(markerPartenza);
-
-markerPartenza=null;
-
-}
-
-
-if(markerArrivo){
-
-map.removeLayer(markerArrivo);
-
-markerArrivo=null;
-
-}
-
-
-puntiPercorso = [];
-
-istruzioni = [];
-
-indiceIstruzioneCorrente = 0;
-
-arrivoCorrente = null;
-
-document.getElementById("btnAvviaNavigazione").disabled = true;
-
-
-document.getElementById("risultato").innerText =
-"Percorso cancellato";
-
-
-}
-
-/****************************************************
-        FUNZIONI EXTRA E SICUREZZA
-****************************************************/
-
-function infoSistema(){
-
-console.log(
-"Navigatore camion TomTom avviato correttamente"
-);
-
-}
-
-/****************************************************
-        AVVIO
+         INIZIALIZZAZIONE
 ****************************************************/
 
 configuraAutocomplete("partenza");
 
 configuraAutocomplete("arrivo");
-
-infoSistema();
 
 </script>
 
