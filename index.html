@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigatore Mezzi Pesanti</title>
+    <title>Navigatore Camion Professionale</title>
     <!-- Mappa Standard OpenSource -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
@@ -19,16 +19,19 @@
 <body>
 
     <div id="controlli">
-        <input type="text" id="partenza" placeholder="Partenza (es. Milano)" value="Milano">
-        <input type="text" id="arrivo" placeholder="Arrivo (es. Roma)" value="Roma">
-        <button onclick="calcolaPercorsoLibero()">Calcola Percorso Camion</button>
+        <input type="text" id="partenza" placeholder="Inserisci partenza (es. Milano)" value="Milano">
+        <input type="text" id="arrivo" placeholder="Inserisci arrivo (es. Roma)" value="Roma">
+        <button onclick="calcolaPercorsoTomTom()">Calcola Percorso Camion</button>
         <div id="risultato"></div>
     </div>
 
     <div id="mappa"></div>
 
     <script>
-        // Inizializza la mappa Leaflet sull'Italia
+        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE
+        const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
+
+        // 1. Inizializza la mappa Leaflet
         const map = L.map('mappa').setView([42.5, 12.5], 6);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
@@ -36,66 +39,81 @@
 
         let stratoPercorso = null;
 
-        // Funzione pubblica per cercare le coordinate senza chiavi
-        async function ottieniCoordinate(testo) {
-            const url = `https://openstreetmap.org{encodeURIComponent(testo)}&limit=1`;
-            const res = await fetch(url, { headers: { 'User-Agent': 'NavigatoreCamionApp' } });
-            const data = await res.json();
-            if (data && data.length > 0) {
-                return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
-            }
-            throw new Error("Località non trovata: " + testo);
-        }
-
-        async function calcolaPercorsoLibero() {
+        async function calcolaPercorsoTomTom() {
             const divRisultato = document.getElementById('risultato');
-            divRisultato.innerText = "Ricerca in corso...";
+            const partenzaTesto = document.getElementById('partenza').value;
+            const arrivoTesto = document.getElementById('arrivo').value;
+            
+            if (TOMTOM_KEY === "LA_TUA_API_KEY_TOMTOM" || TOMTOM_KEY === "") {
+                alert("Inserisci la tua chiave TomTom reale riga 33!");
+                return;
+            }
+
+            divRisultato.innerText = "Connessione sicura tramite Proxy CORS...";
 
             try {
-                // Trova le coordinate di partenza e arrivo
-                const p1 = await ottieniCoordinate(document.getElementById('partenza').value);
-                const p2 = await ottieniCoordinate(document.getElementById('arrivo').value);
+                // Usiamo il proxy AllOrigins che aggira i blocchi di GitHub sui server esterni
+                const proxy = "https://allorigins.win";
 
-                divRisultato.innerText = "Calcolo percorso stradale...";
+                // 1. Cerca Coordinate Partenza passate dentro il proxy
+                const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
+                const resP1 = await fetch(proxy + encodeURIComponent(urlP1));
+                const dataP1 = await resP1.json();
+                
+                if (!dataP1.results || dataP1.results.length === 0) {
+                    divRisultato.innerText = "Località di partenza non trovata.";
+                    return;
+                }
+                const lat1 = dataP1.results[0].position.lat;
+                const lon1 = dataP1.results[0].position.lon;
 
-                // Interroga il server pubblico OSRM (Senza necessità di chiavi o autenticazioni)
-                const urlRouting = `https://project-osrm.org{p1[0]},${p1[1]};${p2[0]},${p2[1]}?overview=full&geometries=geojson`;
-                const resRouting = await fetch(urlRouting);
+                // 2. Cerca Coordinate Arrivo passate dentro il proxy
+                const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
+                const resP2 = await fetch(proxy + encodeURIComponent(urlP2));
+                const dataP2 = await resP2.json();
+                
+                if (!dataP2.results || dataP2.results.length === 0) {
+                    divRisultato.innerText = "Località di arrivo non trovata.";
+                    return;
+                }
+                const lat2 = dataP2.results[0].position.lat;
+                const lon2 = dataP2.results[0].position.lon;
+
+                divRisultato.innerText = "Calcolo percorso camion (TomTom)...";
+
+                // 3. Richiesta di Calcolo Percorso Camion passata dentro il proxy
+                const urlRouting = `https://tomtom.com{lat1},${lon1}:${lat2},${lon2}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4.0`;
+                const resRouting = await fetch(proxy + encodeURIComponent(urlRouting));
                 const dataRouting = await resRouting.json();
 
                 if (dataRouting.routes && dataRouting.routes.length > 0) {
                     const percorso = dataRouting.routes[0];
                     
-                    // Calcolo Distanza standard
-                    const distanzaKm = (percorso.distance / 1000).toFixed(1);
-                    
-                    // APPLICAZIONE DEI LIMITI CAMION:
-                    // Moltiplichiamo il tempo delle auto per un coefficiente correttivo medio (1.35) 
-                    // per simulare l'andamento reale di un mezzo pesante bloccato a 80-90 km/h in autostrada
-                    const tempoAutoSecondi = percorso.duration;
-                    const tempoCamionSecondi = tempoAutoSecondi * 1.35; 
-                    
-                    const oreTotali = tempoCamionSecondi / 3600;
+                    const distanzaKm = (percorso.summary.lengthInMeters / 1000).toFixed(1);
+                    const oreTotali = percorso.summary.travelTimeInSeconds / 3600;
                     const ore = Math.floor(oreTotali);
                     const minuti = Math.round((oreTotali - ore) * 60);
 
-                    divRisultato.innerText = `🚚 Camion: ${distanzaKm} km | Tempo stimato: ${ore}h ${minuti}min`;
+                    divRisultato.innerText = `🚚 Camion: ${distanzaKm} km | Tempo TomTom: ${ore}h ${minuti}min`;
 
                     if (stratoPercorso) { map.removeLayer(stratoPercorso); }
 
-                    // Inverte l'ordine delle coordinate GeoJSON per adattarle a Leaflet
-                    const puntiLinea = percorso.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                    const puntiLinea = [];
+                    percorso.legs.forEach(leg => {
+                        leg.points.forEach(pt => {
+                            puntiLinea.push([pt.latitude, pt.longitude]);
+                        });
+                    });
 
-                    // Disegna la strada sulla mappa
                     stratoPercorso = L.polyline(puntiLinea, {color: '#e67e22', weight: 6}).addTo(map);
                     map.fitBounds(stratoPercorso.getBounds());
                 } else {
-                    divRisultato.innerText = "Nessun percorso trovato.";
+                    divRisultato.innerText = "Nessun percorso stradale trovato per mezzi pesanti.";
                 }
 
             } catch (error) {
-                divRisultato.innerText = "Errore durante il calcolo.";
-                alert(error.message);
+                divRisultato.innerText = "Errore di connessione.";
+                alert("Dettaglio errore sbloccato dal proxy: " + error.message);
             }
         }
     </script>
