@@ -28,7 +28,7 @@
     <div id="mappa"></div>
 
     <script>
-        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE
+        // METTI QUI LA TUA API KEY DI TOMTOM MANTENENDO LE VIRGOLETTE!!!!
         const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK"; 
 
         // 1. Inizializza la mappa Leaflet
@@ -52,10 +52,10 @@
             divRisultato.innerText = "Connessione sicura tramite Proxy CORS...";
 
             try {
-                // Usiamo il proxy AllOrigins che aggira i blocchi di GitHub sui server esterni
+                // Proxy AllOrigins pulito
                 const proxy = "https://allorigins.win";
 
-                // 1. Cerca Coordinate Partenza passate dentro il proxy
+                // 1. Cerca Coordinate Partenza (Sintassi URL Corretta)
                 const urlP1 = `https://tomtom.com{encodeURIComponent(partenzaTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
                 const resP1 = await fetch(proxy + encodeURIComponent(urlP1));
                 const dataP1 = await resP1.json();
@@ -67,7 +67,7 @@
                 const lat1 = dataP1.results[0].position.lat;
                 const lon1 = dataP1.results[0].position.lon;
 
-                // 2. Cerca Coordinate Arrivo passate dentro il proxy
+                // 2. Cerca Coordinate Arrivo (Sintassi URL Corretta)
                 const urlP2 = `https://tomtom.com{encodeURIComponent(arrivoTesto)}.json?key=${TOMTOM_KEY}&limit=1`;
                 const resP2 = await fetch(proxy + encodeURIComponent(urlP2));
                 const dataP2 = await resP2.json();
@@ -81,7 +81,7 @@
 
                 divRisultato.innerText = "Calcolo percorso camion (TomTom)...";
 
-                // 3. Richiesta di Calcolo Percorso Camion passata dentro il proxy
+                // 3. Richiesta di Calcolo Percorso Camion
                 const urlRouting = `https://tomtom.com{lat1},${lon1}:${lat2},${lon2}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=90&vehicleWeight=18000&vehicleHeight=4.0`;
                 const resRouting = await fetch(proxy + encodeURIComponent(urlRouting));
                 const dataRouting = await resRouting.json();
@@ -113,7 +113,7 @@
 
             } catch (error) {
                 divRisultato.innerText = "Errore di connessione.";
-                alert("Dettaglio errore sbloccato dal proxy: " + error.message);
+                alert("Dettaglio errore: " + error.message);
             }
         }
     </script>
