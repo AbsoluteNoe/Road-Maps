@@ -121,6 +121,70 @@ body{
 
     position:relative;
 
+    transition: transform 0.3s ease, max-height 0.3s ease;
+
+    max-height: 1000px;
+
+    overflow: hidden;
+
+}
+
+#controlli.collapsed{
+
+    transform: translateY(-100%);
+
+    max-height: 0;
+
+}
+
+.toggle-panel{
+
+    position:fixed;
+
+    top:0;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    background:#2c3e50;
+
+    color:white;
+
+    width:60px;
+
+    height:40px;
+
+    border-radius:0 0 10px 10px;
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    cursor:pointer;
+
+    font-size:24px;
+
+    z-index:1000;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.3);
+
+    transition: all 0.3s ease;
+
+}
+
+.toggle-panel:hover{
+
+    background:#34495e;
+
+}
+
+.toggle-panel.visible{
+
+    display:flex;
+
 }
 
 .campo-wrapper{
@@ -531,6 +595,10 @@ button:disabled{
 
 </div>
 
+<!-- PULSANTE TOGGLE PANNELLO -->
+
+<div class="toggle-panel" id="togglePanel" onclick="togglePanel()">▼</div>
+
 <div id="controlli">
 
 <div id="infoMezzo"></div>
@@ -692,6 +760,12 @@ let mezzoSelezionato = {
 };
 
 /****************************************************
+          STATO PANNELLO CONTROLLO
+****************************************************/
+
+let pannelloCollapsed = false;
+
+/****************************************************
                 MAPPA
 ****************************************************/
 
@@ -745,6 +819,34 @@ let seguiPosizione = true;
 const SOGLIA_RICALCOLO_METRI = 50;
 const SOGLIA_AVANZAMENTO_METRI = 35;
 const LETTURE_FUORI_PERCORSO_PER_RICALCOLO = 3;
+
+/****************************************************
+            TOGGLE PANNELLO CONTROLLO
+****************************************************/
+
+function togglePanel(){
+
+    const controlli = document.getElementById("controlli");
+
+    const toggleBtn = document.getElementById("togglePanel");
+
+    pannelloCollapsed = !pannelloCollapsed;
+
+    if(pannelloCollapsed){
+
+        controlli.classList.add("collapsed");
+
+        toggleBtn.innerHTML = "▲";
+
+    }else{
+
+        controlli.classList.remove("collapsed");
+
+        toggleBtn.innerHTML = "▼";
+
+    }
+
+}
 
 /****************************************************
               UTILITY - FUNCTIONAL CLASS
@@ -1361,6 +1463,15 @@ document.getElementById("pannelloNavigazione").style.display = "block";
 
 document.getElementById("btnCentra").style.display = "block";
 
+// Mostra toggle e collassa il pannello controlli
+document.getElementById("togglePanel").classList.add("visible");
+
+if(!pannelloCollapsed){
+
+    togglePanel();
+
+}
+
 if(navigator.geolocation){
 
 watchIdNavigazione = navigator.geolocation.watchPosition(
@@ -1637,6 +1748,15 @@ markerPosizioneUtente = null;
 document.getElementById("pannelloNavigazione").style.display = "none";
 
 document.getElementById("btnCentra").style.display = "none";
+
+document.getElementById("togglePanel").classList.remove("visible");
+
+// Riapri il pannello controlli
+if(pannelloCollapsed){
+
+    togglePanel();
+
+}
 
 seguiPosizione = true;
 
