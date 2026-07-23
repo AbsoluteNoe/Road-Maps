@@ -70,14 +70,14 @@ body{
 
 .grid-mezzi{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr;
     gap:12px;
     margin-bottom:20px;
 }
 
 .grid-mezzi button{
-    padding:20px;
-    font-size:14px;
+    padding:25px;
+    font-size:15px;
     background:#ecf0f1;
     color:#2c3e50;
     border:2px solid #bdc3c7;
@@ -85,19 +85,26 @@ body{
     cursor:pointer;
     transition:all 0.3s ease;
     font-weight:bold;
+    text-align:left;
 }
 
 .grid-mezzi button:hover{
     background:#3498db;
     color:white;
     border-color:#3498db;
-    transform:scale(1.05);
+    transform:scale(1.02);
 }
 
 .grid-mezzi button.attivo{
     background:#e67e22;
     color:white;
     border-color:#e67e22;
+}
+
+.limite-info{
+    font-size:12px;
+    margin-top:8px;
+    opacity:0.8;
 }
 
 #controlli{
@@ -503,24 +510,19 @@ button:disabled{
 
         <div class="grid-mezzi">
 
-            <button onclick="selezionaMezzo('fino12','Fino a 12 tonnellate',80)">
-                🚛<br>Fino a 12 tonnellate
+            <button onclick="selezionaMezzo('fino12','Autocarri 3,5-12 tonnellate')">
+                🚛 Autocarri 3,5-12 tonnellate
+                <div class="limite-info">Centro: 50 km/h | Extraurbane: 80 km/h | Autostrada: 100 km/h</div>
             </button>
 
-            <button onclick="selezionaMezzo('oltre12','Oltre 12 tonnellate',100)">
-                🚚<br>Oltre 12 tonnellate
+            <button onclick="selezionaMezzo('oltre12','Autocarri oltre 12 tonnellate (anche autotreni, autoarticolati)')">
+                🚚 Autocarri oltre 12 tonnellate<br>(anche autotreni, autoarticolati)
+                <div class="limite-info">Centro: 50 km/h | Extraurbane: 70 km/h | Autostrada: 80 km/h</div>
             </button>
 
-            <button onclick="selezionaMezzo('adr','Autocisterne ADR',80)">
-                ⚠️<br>Autocisterne ADR
-            </button>
-
-            <button onclick="selezionaMezzo('opere','Mezzi d\'opera',80)">
-                🏗️<br>Mezzi d'opera
-            </button>
-
-            <button style="grid-column:1/3;" onclick="selezionaMezzo('autobus','Autobus',100)">
-                🚌 Autobus
+            <button onclick="selezionaMezzo('autobus','Autobus > 8 tonnellate')">
+                🚌 Autobus > 8 tonnellate
+                <div class="limite-info">Centro: 50 km/h | Extraurbane: 80 km/h | Autostrada: 100 km/h</div>
             </button>
 
         </div>
@@ -629,7 +631,7 @@ Prosegui dritto
 
 <span id="velocitaAttuale">0 km/h</span>
 
-<span id="limiteMezzoP">Limite camion: 90 km/h</span>
+<span id="limiteMezzoP">Limite camion: -- km/h</span>
 
 <span id="infoRimanente"></span>
 
@@ -658,13 +660,35 @@ Prosegui dritto
 const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK";
 
 /****************************************************
+      LIMITI DI VELOCITÀ PER TIPO DI MEZZO E STRADA
+      SECONDO NORMATIVA ITALIANA
+****************************************************/
+
+const limitiVelocita = {
+    fino12: {
+        urbana: 50,
+        extraurbana: 80,
+        autostrada: 100
+    },
+    oltre12: {
+        urbana: 50,
+        extraurbana: 70,
+        autostrada: 80
+    },
+    autobus: {
+        urbana: 50,
+        extraurbana: 80,
+        autostrada: 100
+    }
+};
+
+/****************************************************
           STATO MEZZO SELEZIONATO
 ****************************************************/
 
 let mezzoSelezionato = {
     tipo: null,
-    nome: null,
-    limiteVelocita: null
+    nome: null
 };
 
 /****************************************************
@@ -695,12 +719,6 @@ let percorsoLayer=null;
         STATO SELEZIONE LUOGHI (autocomplete)
 ****************************************************/
 
-// Memorizza le coordinate scelte dall'utente tramite
-
-// i suggerimenti, cosi' da non dover rifare la ricerca
-
-// quando si preme "Calcola Percorso Camion".
-
 const luoghiSelezionati = {
 
 partenza:null,
@@ -713,50 +731,57 @@ arrivo:null
         STATO PERCORSO E NAVIGAZIONE
 ****************************************************/
 
-let puntiPercorso = [];        // coordinate della polilinea corrente
-
-let istruzioni = [];           // istruzioni svolta-per-svolta
-
+let puntiPercorso = [];
+let istruzioni = [];
 let indiceIstruzioneCorrente = 0;
-
-let arrivoCorrente = null;     // destinazione (per il ricalcolo)
-
+let arrivoCorrente = null;
 let navigazioneAttiva = false;
-
 let watchIdNavigazione = null;
-
 let markerPosizioneUtente = null;
-
 let ultimaPosizioneGps = null;
-
 let contatoreFuoriPercorso = 0;
-
 let seguiPosizione = true;
 
 const SOGLIA_RICALCOLO_METRI = 50;
-
 const SOGLIA_AVANZAMENTO_METRI = 35;
-
 const LETTURE_FUORI_PERCORSO_PER_RICALCOLO = 3;
+
+/****************************************************
+              UTILITY - FUNCTIONAL CLASS
+****************************************************/
+
+function getTipoStrada(functionalClass){
+    if(!functionalClass) return "urbana";
+    
+    if(functionalClass === 1) return "autostrada";
+    if(functionalClass === 2) return "extraurbana";
+    if(functionalClass === 3 || functionalClass === 4) return "extraurbana";
+    if(functionalClass === 5) return "urbana";
+    
+    return "urbana";
+}
+
+function getLimiteVelocita(tipoMezzo, tipoStrada){
+    const limiti = limitiVelocita[tipoMezzo];
+    return limiti ? limiti[tipoStrada] || 50 : 50;
+}
 
 /****************************************************
         SELEZIONE MEZZO
 ****************************************************/
 
-function selezionaMezzo(tipo, nome, limiteVelocita){
+function selezionaMezzo(tipo, nome){
 
     mezzoSelezionato.tipo = tipo;
 
     mezzoSelezionato.nome = nome;
-
-    mezzoSelezionato.limiteVelocita = limiteVelocita;
 
     // Nascondi modal
     document.getElementById("modalMezzo").style.display = "none";
 
     // Mostra info mezzo
     document.getElementById("infoMezzo").innerHTML = `
-        ✓ Mezzo selezionato: <strong>${nome}</strong> - Limite: <strong>${limiteVelocita} km/h</strong>
+        ✓ Mezzo selezionato: <strong>${nome}</strong>
     `;
 
 }
@@ -1092,7 +1117,9 @@ messaggio: istr.message || "Prosegui dritto",
 
 manovra: istr.maneuver || "",
 
-strada: istr.street || istr.signpostText || ""
+strada: istr.street || istr.signpostText || "",
+
+functionalClass: istr.functionalClass
 
 });
 
@@ -1236,11 +1263,10 @@ await cercaLuogo(arrivo);
 risultato.innerText =
 "Calcolo percorso camion...";
 
-
-
+// Usa un limite medio di 80 km/h per il calcolo del routing
 const urlRouting =
 
-`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=${mezzoSelezionato.limiteVelocita}&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&computeBestOrder=false&routeType=fastest&language=it-IT`;
+`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=80&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&computeBestOrder=false&routeType=fastest&language=it-IT`;
 
 const rispostaRouting = await fetch(urlRouting);
 
@@ -1477,7 +1503,15 @@ return sum + calcDistanza(prev.lat, prev.lon, istr.lat, istr.lon);
 
 const velocita = Math.round(coords.speed * 3.6) || 0;
 
-const limiteCamion = mezzoSelezionato.limiteVelocita;
+// Determina il tipo di strada dall'istruzione corrente
+let tipoStrada = "urbana";
+
+if(indiceIstruzioneCorrente < istruzioni.length){
+    const fc = istruzioni[indiceIstruzioneCorrente].functionalClass;
+    tipoStrada = getTipoStrada(fc);
+}
+
+const limiteCamion = getLimiteVelocita(mezzoSelezionato.tipo, tipoStrada);
 
 document.getElementById("iconaManovra").innerText = getManovra(istrCorrente.manovra);
 
@@ -1535,7 +1569,7 @@ const puntoArrivo = arrivoCorrente;
 
 const urlRouting =
 
-`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=${mezzoSelezionato.limiteVelocita}&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&routeType=fastest&language=it-IT`;
+`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=80&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&routeType=fastest&language=it-IT`;
 
 const rispostaRouting = await fetch(urlRouting);
 
