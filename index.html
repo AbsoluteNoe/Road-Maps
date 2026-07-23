@@ -49,62 +49,15 @@ body{
 
 #contenitoreModal{
     background:white;
-    padding:40px;
+    padding:30px;
     border-radius:10px;
-    box-shadow:0 8px 32px rgba(0,0,0,0.3);
+    box-shadow:0 4px 6px rgba(0,0,0,.1);
     text-align:center;
-    max-width:500px;
 }
 
 #contenitoreModal h2{
+    margin-top:0;
     color:#2c3e50;
-    margin-bottom:20px;
-    font-size:24px;
-}
-
-#contenitoreModal p{
-    color:#666;
-    margin-bottom:30px;
-    font-size:16px;
-}
-
-.grid-mezzi{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:12px;
-    margin-bottom:20px;
-}
-
-.grid-mezzi button{
-    padding:25px;
-    font-size:15px;
-    background:#ecf0f1;
-    color:#2c3e50;
-    border:2px solid #bdc3c7;
-    border-radius:8px;
-    cursor:pointer;
-    transition:all 0.3s ease;
-    font-weight:bold;
-    text-align:left;
-}
-
-.grid-mezzi button:hover{
-    background:#3498db;
-    color:white;
-    border-color:#3498db;
-    transform:scale(1.02);
-}
-
-.grid-mezzi button.attivo{
-    background:#e67e22;
-    color:white;
-    border-color:#e67e22;
-}
-
-.limite-info{
-    font-size:12px;
-    margin-top:8px;
-    opacity:0.8;
 }
 
 #controlli{
@@ -121,439 +74,119 @@ body{
 
     position:relative;
 
-    transition: transform 0.3s ease, max-height 0.3s ease;
-
-    max-height: 1000px;
-
-    overflow: hidden;
+    transition: transform 0.3s ease;
 
 }
 
 #controlli.collapsed{
-
     transform: translateY(-100%);
-
-    max-height: 0;
-
 }
 
-.toggle-panel{
-
-    position:fixed;
-
-    top:0;
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-    background:#2c3e50;
-
-    color:white;
-
-    width:60px;
-
-    height:40px;
-
-    border-radius:0 0 10px 10px;
-
-    display:none;
-
-    justify-content:center;
-
-    align-items:center;
-
-    cursor:pointer;
-
-    font-size:24px;
-
-    z-index:1000;
-
-    box-shadow:0 2px 10px rgba(0,0,0,.3);
-
-    transition: all 0.3s ease;
-
+#toggleButton{
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1000;
+    border-radius: 0 0 8px 8px;
+    transition: background 0.3s ease;
+    display: none;
 }
 
-.toggle-panel:hover{
-
-    background:#34495e;
-
+#toggleButton:hover{
+    background: #34495e;
 }
 
-.toggle-panel.visible{
-
-    display:flex;
-
+#toggleButton.show{
+    display: block;
 }
 
-.campo-wrapper{
-
-    position:relative;
-
-    margin-bottom:10px;
-
-}
-
-input{
-
-    width:100%;
-
-    box-sizing:border-box;
-
-    padding:10px;
-
-    border-radius:5px;
-
-    border:none;
-
-    font-size:15px;
-
-}
-
-.suggerimenti{
-
-    position:absolute;
-
-    top:100%;
-
-    left:0;
-
-    right:0;
-
-    background:white;
-
-    color:#2c3e50;
-
-    border-radius:0 0 5px 5px;
-
-    max-height:220px;
-
-    overflow-y:auto;
-
-    box-shadow:0 4px 10px rgba(0,0,0,.4);
-
-    z-index:1500;
-
-    display:none;
-
-}
-
-.suggerimenti div{
-
-    padding:10px;
-
-    cursor:pointer;
-
-    border-bottom:1px solid #eee;
-
-    font-size:14px;
-
-    line-height:1.3;
-
-}
-
-.suggerimenti div:last-child{
-
-    border-bottom:none;
-
-}
-
-.suggerimenti div:hover,
-.suggerimenti div.attivo{
-
-    background:#f1c40f;
-
-}
-
-.suggerimenti .nome-luogo{
-
-    font-weight:bold;
-
-    display:block;
-
-}
-
-.suggerimenti .indirizzo-luogo{
-
-    font-size:12px;
-
-    color:#666;
-
-}
-
-button{
-
-    width:100%;
-
-    padding:12px;
-
-    border:none;
-
-    border-radius:5px;
-
-    background:#e67e22;
-
-    color:white;
-
-    cursor:pointer;
-
-    font-weight:bold;
-
-    font-size:16px;
-
-    margin-top:10px;
-
-}
-
-button:hover{
-
-    background:#d35400;
-
-}
-
-button:disabled{
-
-    background:#7f8c8d;
-
-    cursor:not-allowed;
-
-}
-
-#mappa{
-
-    flex:1;
-
-    position:relative;
-
-}
-
-#risultato{
-
-    margin-top:15px;
-
-    font-size:18px;
-
-    font-weight:bold;
-
-    color:#f1c40f;
-
-    text-align:center;
-
-}
-
-#infoMezzo{
-
-    padding:10px;
-
-    background:#27ae60;
-
-    color:white;
-
-    text-align:center;
-
-    font-weight:bold;
-
-    font-size:14px;
-
-    border-radius:5px;
-
-    margin-bottom:10px;
-
-}
-
-/****************************************************
-        STILE MARKER FRECCIA DIREZIONE (GPS)
-****************************************************/
-
-.freccia-navigazione{
-
-    width:40px;
-
-    height:40px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    font-size:30px;
-
-    color:#2980ff;
-
-    text-shadow:
-
-        -1px -1px 0 #fff,
-
-        1px -1px 0 #fff,
-
-        -1px 1px 0 #fff,
-
-        1px 1px 0 #fff,
-
-        0 0 6px rgba(0,0,0,.4);
-
-    transition:transform 0.25s linear;
-
-    transform-origin:50% 50%;
-
-}
-
-/****************************************************
-        PANNELLO NAVIGAZIONE (STILE GOOGLE MAPS)
-****************************************************/
-
-#pannelloNavigazione{
-
-    display:none;
-
-    position:fixed;
-
-    left:0;
-
-    right:0;
-
-    bottom:0;
-
-    background:#1b1f27;
-
-    color:white;
-
-    padding:15px;
-
-    box-shadow:0 -4px 15px rgba(0,0,0,.4);
-
-    z-index:2000;
-
-}
-
-.riga-principale{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:12px;
-
-}
-
-.icona-manovra{
-
-    font-size:34px;
-
-    min-width:46px;
-
-    text-align:center;
-
-}
-
-.testo-istruzione{
+#mapa{
 
     flex:1;
 
 }
 
-.messaggio-nav{
-
-    font-size:18px;
-
-    font-weight:bold;
-
+.input-group {
+    margin-bottom: 10px;
 }
 
-.distanza-nav{
-
-    font-size:14px;
-
-    color:#f1c40f;
-
-    margin-top:2px;
-
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
-.strada-attuale{
-
-    margin-top:8px;
-
-    font-size:13px;
-
-    color:#bbb;
-
+.input-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
 
-.riga-info{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-top:10px;
-
-    font-size:14px;
-
-    color:#ddd;
-
+button {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
 }
 
-#limiteMezzoP{
-
-    font-weight:bold;
-
-    color:#ff6b6b;
-
-    text-align:center;
-
-    flex:1;
-
+button:hover {
+    background: #229954;
 }
 
-.btn-termina{
-
-    margin-top:12px;
-
-    background:#c0392b;
-
+button.reset {
+    background: #c0392b;
 }
 
-.btn-termina:hover{
-
-    background:#962d22;
-
+button.reset:hover {
+    background: #a93226;
 }
 
-#btnCentra{
+.controllo-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
 
-    display:none;
+.controllo-row .input-group {
+    flex: 1;
+    margin-bottom: 0;
+}
 
-    position:fixed;
+.controllo-row .input-group input {
+    width: 100%;
+}
 
-    right:15px;
+.controllo-col {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
-    bottom:230px;
+.info-bar {
+    background: #ecf0f1;
+    color: #2c3e50;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 14px;
+    display: none;
+}
 
-    width:50px;
-
-    height:50px;
-
-    border-radius:50%;
-
-    background:#2980ff;
-
-    color:white;
-
-    font-size:22px;
-
-    box-shadow:0 2px 10px rgba(0,0,0,.4);
-
-    z-index:2001;
-
-    padding:0;
-
-    margin:0;
-
+.info-bar.show {
+    display: block;
 }
 
 </style>
@@ -562,1246 +195,209 @@ button:disabled{
 
 <body>
 
-<!-- MODAL SELEZIONE MEZZO -->
-
-<div id="modalMezzo">
-
-    <div id="contenitoreModal">
-
-        <h2>Seleziona il tuo mezzo</h2>
-
-        <p>Scegli il tipo di veicolo per ottenere i limiti di velocità corretti</p>
-
-        <div class="grid-mezzi">
-
-            <button onclick="selezionaMezzo('fino12','Autocarri 3,5-12 tonnellate')">
-                🚛 Autocarri 3,5-12 tonnellate
-                <div class="limite-info">Centro: 50 km/h | Extraurbane: 80 km/h | Autostrada: 100 km/h</div>
-            </button>
-
-            <button onclick="selezionaMezzo('oltre12','Autocarri oltre 12 tonnellate (anche autotreni, autoarticolati)')">
-                🚚 Autocarri oltre 12 tonnellate<br>(anche autotreni, autoarticolati)
-                <div class="limite-info">Centro: 50 km/h | Extraurbane: 70 km/h | Autostrada: 80 km/h</div>
-            </button>
-
-            <button onclick="selezionaMezzo('autobus','Autobus > 8 tonnellate')">
-                🚌 Autobus > 8 tonnellate
-                <div class="limite-info">Centro: 50 km/h | Extraurbane: 80 km/h | Autostrada: 100 km/h</div>
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- PULSANTE TOGGLE PANNELLO -->
-
-<div class="toggle-panel" id="togglePanel" onclick="togglePanel()">▼</div>
-
 <div id="controlli">
-
-<div id="infoMezzo"></div>
-
-<div class="campo-wrapper">
-
-<input
-type="text"
-id="partenza"
-placeholder="Partenza (indirizzo, azienda, luogo...)"
-value=""
-autocomplete="off">
-
-<div class="suggerimenti" id="suggerimenti-partenza"></div>
-
+    <div class="controllo-row">
+        <div class="input-group">
+            <label for="partenza">Partenza</label>
+            <input type="text" id="partenza" placeholder="Inserisci partenza">
+        </div>
+        <div class="input-group">
+            <label for="arrivo">Arrivo</label>
+            <input type="text" id="arrivo" placeholder="Inserisci arrivo">
+        </div>
+    </div>
+    <div class="controllo-row">
+        <div class="input-group">
+            <label for="mezzo">Seleziona Mezzo</label>
+            <input type="text" id="mezzo" placeholder="Clicca per selezionare mezzo" readonly>
+        </div>
+    </div>
+    <div class="controllo-col">
+        <button id="calcola">Calcola Percorso</button>
+        <button id="cancella" class="reset">Cancella Percorso</button>
+    </div>
+    <div id="infoBar" class="info-bar"></div>
 </div>
 
+<button id="toggleButton"></button>
 
-<div class="campo-wrapper">
+<div id="mapa"></div>
 
-<input
-type="text"
-id="arrivo"
-placeholder="Arrivo (indirizzo, azienda, luogo...)"
-value=""
-autocomplete="off">
-
-<div class="suggerimenti" id="suggerimenti-arrivo"></div>
-
+<div id="modalMezzo" style="display:none;">
+    <div id="contenitoreModal">
+        <h2>Seleziona il Mezzo</h2>
+        <div id="mezziContainer"></div>
+    </div>
 </div>
-
-
-<button onclick="calcolaPercorso()">
-
-Calcola Percorso Camion
-
-</button>
-
-
-<button id="btnAvviaNavigazione"
-onclick="avviaNavigazione()"
-style="background:#27ae60"
-disabled>
-
-🧭 Avvia Navigazione
-
-</button>
-
-
-<button onclick="pulisciMappa()"
-style="background:#c0392b">
-
-Cancella percorso
-
-</button>
-
-<button onclick="cambiaToMezzo()"
-style="background:#9b59b6">
-
-Cambia mezzo
-
-</button>
-
-
-<div id="risultato"></div>
-
-</div>
-
-
-<div id="mappa"></div>
-
-
-<!-- Pannello di navigazione stile Google Maps -->
-
-<div id="pannelloNavigazione">
-
-<div class="riga-principale">
-
-<div id="iconaManovra" class="icona-manovra">⬆️</div>
-
-<div class="testo-istruzione">
-
-<div id="messaggioNavigazione" class="messaggio-nav">
-
-Prosegui dritto
-
-</div>
-
-<div id="distanzaManovra" class="distanza-nav"></div>
-
-</div>
-
-</div>
-
-<div id="stradaAttuale" class="strada-attuale"></div>
-
-<div class="riga-info">
-
-<span id="velocitaAttuale">0 km/h</span>
-
-<span id="limiteMezzoP">Limite camion: -- km/h</span>
-
-<span id="infoRimanente"></span>
-
-</div>
-
-<button class="btn-termina" onclick="terminaNavigazione()">
-
-✕ Termina navigazione
-
-</button>
-
-</div>
-
-
-<!-- Pulsante per ricentrare la mappa sulla posizione -->
-
-<button id="btnCentra" onclick="ricentraMappa()">🎯</button>
-
 
 <script>
 
-/****************************************************
-                CONFIGURAZIONE
-****************************************************/
-
-const TOMTOM_KEY = "scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK";
-
-/****************************************************
-      LIMITI DI VELOCITÀ PER TIPO DI MEZZO E STRADA
-      SECONDO NORMATIVA ITALIANA
-****************************************************/
-
-const limitiVelocita = {
-    fino12: {
-        urbana: 50,
-        extraurbana: 80,
-        autostrada: 100
-    },
-    oltre12: {
-        urbana: 50,
-        extraurbana: 70,
-        autostrada: 80
-    },
-    autobus: {
-        urbana: 50,
-        extraurbana: 80,
-        autostrada: 100
-    }
+const mezzi = {
+    'Autoarticolato': 90,
+    'Trattore Stradale': 90,
+    'Autobus': 100,
+    'Camion Leggero': 110,
 };
 
-/****************************************************
-          STATO MEZZO SELEZIONATO
-****************************************************/
+let map;
+let routing;
+let currentRoute;
+let currentMezzo = null;
+let selectedControl = 'partenza';
+let isNavigating = false;
 
-let mezzoSelezionato = {
-    tipo: null,
-    nome: null
-};
-
-/****************************************************
-          STATO PANNELLO CONTROLLO
-****************************************************/
-
-let pannelloCollapsed = false;
-
-/****************************************************
-                MAPPA
-****************************************************/
-
-const map = L.map("mappa").setView([42.5,12.5],6);
-
-L.tileLayer(
-
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
-{
-
-attribution:"© OpenStreetMap contributors"
-
+function initMap() {
+    map = L.map('mapa').setView([41.871940, 12.567380], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 }
 
-).addTo(map);
+function searchLocation(location) {
+    return fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`)
+        .then(r => r.json());
+}
 
-let markerPartenza=null;
+async function calcolaPercorso() {
+    const partenza = document.getElementById('partenza').value;
+    const arrivo = document.getElementById('arrivo').value;
 
-let markerArrivo=null;
-
-let percorsoLayer=null;
-
-/****************************************************
-        STATO SELEZIONE LUOGHI (autocomplete)
-****************************************************/
-
-const luoghiSelezionati = {
-
-partenza:null,
-
-arrivo:null
-
-};
-
-/****************************************************
-        STATO PERCORSO E NAVIGAZIONE
-****************************************************/
-
-let puntiPercorso = [];
-let istruzioni = [];
-let indiceIstruzioneCorrente = 0;
-let arrivoCorrente = null;
-let navigazioneAttiva = false;
-let watchIdNavigazione = null;
-let markerPosizioneUtente = null;
-let ultimaPosizioneGps = null;
-let contatoreFuoriPercorso = 0;
-let seguiPosizione = true;
-
-const SOGLIA_RICALCOLO_METRI = 50;
-const SOGLIA_AVANZAMENTO_METRI = 35;
-const LETTURE_FUORI_PERCORSO_PER_RICALCOLO = 3;
-
-/****************************************************
-            TOGGLE PANNELLO CONTROLLO
-****************************************************/
-
-function togglePanel(){
-
-    const controlli = document.getElementById("controlli");
-
-    const toggleBtn = document.getElementById("togglePanel");
-
-    pannelloCollapsed = !pannelloCollapsed;
-
-    if(pannelloCollapsed){
-
-        controlli.classList.add("collapsed");
-
-        toggleBtn.innerHTML = "▲";
-
-    }else{
-
-        controlli.classList.remove("collapsed");
-
-        toggleBtn.innerHTML = "▼";
-
+    if (!partenza || !arrivo || !currentMezzo) {
+        alert('Compila tutti i campi');
+        return;
     }
 
+    isNavigating = true;
+    showToggleButton();
+
+    try {
+        const [startResults, endResults] = await Promise.all([
+            searchLocation(partenza),
+            searchLocation(arrivo),
+        ]);
+
+        if (startResults.length === 0 || endResults.length === 0) {
+            alert('Ubicazioni non trovate');
+            isNavigating = false;
+            hideToggleButton();
+            return;
+        }
+
+        const start = [parseFloat(startResults[0].lat), parseFloat(startResults[0].lon)];
+        const end = [parseFloat(endResults[0].lat), parseFloat(endResults[0].lon)];
+
+        const routeUrl = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+        const routeResponse = await fetch(routeUrl);
+        const routeData = await routeResponse.json();
+
+        if (routeData.routes && routeData.routes.length > 0) {
+            const route = routeData.routes[0];
+            const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+            const distance = (route.distance / 1000).toFixed(2);
+            const duration = (route.duration / 3600).toFixed(2);
+
+            map.fitBounds(L.polyline(coords).getBounds());
+
+            if (currentRoute) {
+                map.removeLayer(currentRoute);
+            }
+
+            currentRoute = L.polyline(coords, { color: 'red', weight: 3 }).addTo(map);
+
+            const speedLimit = mezzi[currentMezzo];
+            const info = `Distanza: ${distance} km | Tempo stimato: ${duration} ore | Velocità massima: ${speedLimit} km/h`;
+            document.getElementById('infoBar').textContent = info;
+            document.getElementById('infoBar').classList.add('show');
+
+        } else {
+            alert('Percorso non trovato');
+            isNavigating = false;
+            hideToggleButton();
+        }
+    } catch (error) {
+        console.error('Errore:', error);
+        alert('Errore nel calcolo del percorso');
+        isNavigating = false;
+        hideToggleButton();
+    }
 }
 
-/****************************************************
-              UTILITY - FUNCTIONAL CLASS
-****************************************************/
-
-function getTipoStrada(functionalClass){
-    if(!functionalClass) return "urbana";
-    
-    if(functionalClass === 1) return "autostrada";
-    if(functionalClass === 2) return "extraurbana";
-    if(functionalClass === 3 || functionalClass === 4) return "extraurbana";
-    if(functionalClass === 5) return "urbana";
-    
-    return "urbana";
+function cancella() {
+    if (currentRoute) {
+        map.removeLayer(currentRoute);
+        currentRoute = null;
+    }
+    document.getElementById('partenza').value = '';
+    document.getElementById('arrivo').value = '';
+    document.getElementById('mezzo').value = '';
+    currentMezzo = null;
+    document.getElementById('infoBar').classList.remove('show');
+    isNavigating = false;
+    hideToggleButton();
 }
 
-function getLimiteVelocita(tipoMezzo, tipoStrada){
-    const limiti = limitiVelocita[tipoMezzo];
-    return limiti ? limiti[tipoStrada] || 50 : 50;
+function showToggleButton() {
+    document.getElementById('toggleButton').classList.add('show');
+    updateToggleButton();
 }
 
-/****************************************************
-        SELEZIONE MEZZO
-****************************************************/
-
-function selezionaMezzo(tipo, nome){
-
-    mezzoSelezionato.tipo = tipo;
-
-    mezzoSelezionato.nome = nome;
-
-    // Nascondi modal
-    document.getElementById("modalMezzo").style.display = "none";
-
-    // Mostra info mezzo
-    document.getElementById("infoMezzo").innerHTML = `
-        ✓ Mezzo selezionato: <strong>${nome}</strong>
-    `;
-
+function hideToggleButton() {
+    document.getElementById('toggleButton').classList.remove('show');
+    document.getElementById('controlli').classList.remove('collapsed');
 }
 
-function cambiaToMezzo(){
-
-    // Mostra modal
-    document.getElementById("modalMezzo").style.display = "flex";
-
-    // Reset interfaccia
-    pulisciMappa();
-
+function updateToggleButton() {
+    const isCollapsed = document.getElementById('controlli').classList.contains('collapsed');
+    document.getElementById('toggleButton').textContent = isCollapsed ? '▲' : '▼';
 }
 
-/****************************************************
-        GESTIONE AUTOCOMPLETE / SUGGERIMENTI
-****************************************************/
-
-const timerRicerca = {
-
-partenza:null,
-
-arrivo:null
-
-};
-
-function configuraAutocomplete(idCampo){
-
-const input =
-document.getElementById(idCampo);
-
-const box =
-document.getElementById("suggerimenti-" + idCampo);
-
-
-input.addEventListener("input", () =>{
-
-
-luoghiSelezionati[idCampo] = null;
-
-
-const testo =
-input.value.trim();
-
-
-clearTimeout(
-timerRicerca[idCampo]
-);
-
-
-if(testo.length < 3){
-
-nascondiSuggerimenti(box);
-
-return;
-
+function toggleControls(e) {
+    e.stopPropagation();
+    document.getElementById('controlli').classList.toggle('collapsed');
+    updateToggleButton();
 }
 
-
-timerRicerca[idCampo] =
-setTimeout(async () => {
-
-await cercaSuggerimenti(
-testo,
-box,
-input,
-idCampo
-);
-
-},350);
-
+document.getElementById('partenza').addEventListener('click', () => {
+    selectedControl = 'partenza';
+    document.getElementById('mappa').click();
 });
 
-
-document.addEventListener("click",(evento)=>{
-
-if(
-!box.contains(evento.target) &&
-evento.target !== input
-){
-
-nascondiSuggerimenti(box);
-
-}
-
+document.getElementById('arrivo').addEventListener('click', () => {
+    selectedControl = 'arrivo';
+    document.getElementById('mappa').click();
 });
 
-
-input.addEventListener("keydown",(evento)=>{
-
-const voci =
-box.querySelectorAll("div");
-
-if(!voci.length || box.style.display === "none"){
-
-return;
-
-}
-
-
-let indiceAttivo = -1;
-
-voci.forEach((voce,indice)=>{
-
-if(voce.classList.contains("attivo")){
-
-indiceAttivo = indice;
-
-}
-
+document.getElementById('mezzo').addEventListener('click', () => {
+    document.getElementById('modalMezzo').style.display = 'flex';
 });
 
+document.getElementById('calcola').addEventListener('click', calcolaPercorso);
+document.getElementById('cancella').addEventListener('click', cancella);
+document.getElementById('toggleButton').addEventListener('click', toggleControls);
 
-if(evento.key === "ArrowDown"){
+const modal = document.getElementById('modalMezzo');
 
-evento.preventDefault();
-
-indiceAttivo = (indiceAttivo + 1) % voci.length;
-
-aggiornaEvidenza(voci,indiceAttivo);
-
-}
-else if(evento.key === "ArrowUp"){
-
-evento.preventDefault();
-
-indiceAttivo =
-(indiceAttivo - 1 + voci.length) % voci.length;
-
-aggiornaEvidenza(voci,indiceAttivo);
-
-}
-else if(evento.key === "Enter"){
-
-if(indiceAttivo >= 0){
-
-evento.preventDefault();
-
-voci[indiceAttivo].click();
-
-}
-
-}
-else if(evento.key === "Escape"){
-
-nascondiSuggerimenti(box);
-
-}
-
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
 });
 
+function setupMezzi() {
+    const container = document.getElementById('mezziContainer');
+    for (const [mezzo, speed] of Object.entries(mezzi)) {
+        const btn = document.createElement('button');
+        btn.textContent = `${mezzo} (${speed} km/h)`;
+        btn.addEventListener('click', () => {
+            currentMezzo = mezzo;
+            document.getElementById('mezzo').value = mezzo;
+            modal.style.display = 'none';
+        });
+        container.appendChild(btn);
+    }
 }
 
-function aggiornaEvidenza(voci,indice){
-
-voci.forEach(v=>v.classList.remove("attivo"));
-
-voci[indice].classList.add("attivo");
-
-voci[indice].scrollIntoView({block:"nearest"});
-
-}
-
-function nascondiSuggerimenti(box){
-
-box.style.display = "none";
-
-box.innerHTML = "";
-
-}
-
-async function cercaSuggerimenti(testo,box,input,idCampo){
-
-try{
-
-const url =
-
-`https://api.tomtom.com/search/2/search/${encodeURIComponent(testo)}.json?key=${TOMTOM_KEY}&limit=6&countrySet=IT&idxSet=POI,Geo,Addr,Str`;
-
-const risposta = await fetch(url);
-
-if(!risposta.ok){
-
-nascondiSuggerimenti(box);
-
-return;
-
-}
-
-const dati = await risposta.json();
-
-if(!dati.results || !dati.results.length){
-
-box.innerHTML =
-"<div style='cursor:default;color:#999'>Nessun risultato</div>";
-
-box.style.display = "block";
-
-return;
-
-}
-
-box.innerHTML = "";
-
-dati.results.forEach(risultato=>{
-
-const voce = document.createElement("div");
-
-const nome =
-risultato.poi ?
-risultato.poi.name :
-(risultato.address ?
-risultato.address.freeformAddress :
-"Luogo sconosciuto");
-
-const indirizzoCompleto =
-risultato.address ?
-risultato.address.freeformAddress :
-"";
-
-voce.innerHTML =
-
-`<span class="nome-luogo">${escapeHtml(nome)}</span>` +
-
-(indirizzoCompleto && indirizzoCompleto !== nome ?
-`<span class="indirizzo-luogo">${escapeHtml(indirizzoCompleto)}</span>` :
-"");
-
-voce.addEventListener("click",()=>{
-
-input.value = nome;
-
-luoghiSelezionati[idCampo] = {
-
-lat: risultato.position.lat,
-
-lon: risultato.position.lon,
-
-etichetta: nome
-
-};
-
-nascondiSuggerimenti(box);
-
-});
-
-box.appendChild(voce);
-
-});
-
-box.style.display = "block";
-
-}
-catch(errore){
-
-console.error(errore);
-
-nascondiSuggerimenti(box);
-
-}
-
-}
-
-function escapeHtml(testo){
-
-const div = document.createElement("div");
-
-div.innerText = testo;
-
-return div.innerHTML;
-
-}
-
-/****************************************************
-    GEOCODING / RICERCA LUOGO (fallback manuale)
-****************************************************/
-
-async function cercaLuogo(testo){
-
-const url =
-
-`https://api.tomtom.com/search/2/search/${encodeURIComponent(testo)}.json?key=${TOMTOM_KEY}&limit=1&countrySet=IT&idxSet=POI,Geo,Addr,Str`;
-
-const risposta = await fetch(url);
-
-if(!risposta.ok){
-
-throw new Error("Errore ricerca luogo");
-
-}
-
-const dati = await risposta.json();
-
-if(!dati.results || !dati.results.length){
-
-throw new Error("Località non trovata: " + testo);
-
-}
-
-const primo = dati.results[0];
-
-return{
-
-lat: primo.position.lat,
-
-lon: primo.position.lon
-
-};
-
-}
-
-/****************************************************
-    ESTRAZIONE ISTRUZIONI SVOLTA-PER-SVOLTA
-****************************************************/
-
-function estraiIstruzioni(route){
-
-const lista = [];
-
-if(route.guidance && route.guidance.instructions){
-
-route.guidance.instructions.forEach(istr=>{
-
-if(istr.point){
-
-lista.push({
-
-lat: istr.point.latitude,
-
-lon: istr.point.longitude,
-
-messaggio: istr.message || "Prosegui dritto",
-
-manovra: istr.maneuver || "",
-
-strada: istr.street || istr.signpostText || "",
-
-functionalClass: istr.functionalClass
-
-});
-
-}
-
-});
-
-}
-
-return lista;
-
-}
-
-/****************************************************
-        FUNZIONE PULISCI MAPPA (MODIFICATA)
-****************************************************/
-
-function pulisciMappa(){
-
-// Reset dei campi di testo
-document.getElementById("partenza").value = "";
-
-document.getElementById("arrivo").value = "";
-
-// Reset dello stato selezioni
-luoghiSelezionati.partenza = null;
-
-luoghiSelezionati.arrivo = null;
-
-// Reset della mappa
-if(markerPartenza) map.removeLayer(markerPartenza);
-
-if(markerArrivo) map.removeLayer(markerArrivo);
-
-if(percorsoLayer) map.removeLayer(percorsoLayer);
-
-markerPartenza = null;
-
-markerArrivo = null;
-
-percorsoLayer = null;
-
-// Reset altre variabili
-puntiPercorso = [];
-
-istruzioni = [];
-
-indiceIstruzioneCorrente = 0;
-
-document.getElementById("risultato").innerText = "";
-
-document.getElementById("btnAvviaNavigazione").disabled = true;
-
-// Nascondi il pannello di navigazione se attivo
-document.getElementById("pannelloNavigazione").style.display = "none";
-
-navigazioneAttiva = false;
-
-}
-
-/****************************************************
-             ROUTING CAMION TOMTOM
-****************************************************/
-
-async function calcolaPercorso(){
-
-// Verifica che un mezzo sia stato selezionato
-if(!mezzoSelezionato.tipo){
-
-    alert("Seleziona prima un tipo di mezzo!");
-
-    return;
-
-}
-
-const risultato = document.getElementById("risultato");
-
-const inputPartenza =
-document.getElementById("partenza");
-
-const inputArrivo =
-document.getElementById("arrivo");
-
-const partenza = inputPartenza.value.trim();
-
-const arrivo = inputArrivo.value.trim();
-
-
-if(!partenza || !arrivo){
-
-    risultato.innerText =
-    "Inserisci partenza e arrivo.";
-
-    return;
-
-}
-
-
-if(
-TOMTOM_KEY === "" ||
-TOMTOM_KEY === "INSERISCI_LA_TUA_API_KEY"
-){
-
-    alert("Inserisci la tua API Key TomTom nel codice.");
-
-    return;
-
-}
-
-
-if(navigazioneAttiva){
-
-terminaNavigazione();
-
-}
-
-
-document.getElementById("btnAvviaNavigazione").disabled = true;
-
-
-try{
-
-
-risultato.innerText =
-"Ricerca località...";
-
-
-const puntoPartenza =
-luoghiSelezionati.partenza ?
-luoghiSelezionati.partenza :
-await cercaLuogo(partenza);
-
-
-const puntoArrivo =
-luoghiSelezionati.arrivo ?
-luoghiSelezionati.arrivo :
-await cercaLuogo(arrivo);
-
-
-
-risultato.innerText =
-"Calcolo percorso camion...";
-
-// Usa un limite medio di 80 km/h per il calcolo del routing
-const urlRouting =
-
-`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=80&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&computeBestOrder=false&routeType=fastest&language=it-IT`;
-
-const rispostaRouting = await fetch(urlRouting);
-
-if(!rispostaRouting.ok){
-
-throw new Error("Errore calcolo percorso");
-
-}
-
-const datiRouting = await rispostaRouting.json();
-
-if(!datiRouting.routes || !datiRouting.routes.length){
-
-throw new Error("Nessun percorso disponibile");
-
-}
-
-const route = datiRouting.routes[0];
-
-puntiPercorso = route.legs.flatMap(gamba=>
-gamba.points.map(p=>
-[p.latitude,p.longitude]
-)
-);
-
-istruzioni = estraiIstruzioni(route);
-
-arrivoCorrente = puntoArrivo;
-
-// Visualizza sulla mappa
-const distanzaTotaleKm = Math.round(route.summary.lengthInMeters/1000);
-
-const tempoTotaleMinuti = Math.round(route.summary.travelTimeInSeconds/60);
-
-risultato.innerHTML = `
-✓ Percorso trovato!<br>
-Distanza: ${distanzaTotaleKm} km<br>
-Tempo stimato: ${tempoTotaleMinuti} minuti
-`;
-
-// Marker partenza
-markerPartenza = L.marker([puntoPartenza.lat, puntoPartenza.lon])
-.bindPopup("Partenza")
-.addTo(map);
-
-// Marker arrivo
-markerArrivo = L.marker([puntoArrivo.lat, puntoArrivo.lon])
-.bindPopup("Arrivo")
-.addTo(map);
-
-// Polilinea percorso
-percorsoLayer = L.polyline(puntiPercorso,{
-color:"#e67e22",
-weight:4,
-opacity:0.8
-}).addTo(map);
-
-map.fitBounds(percorsoLayer.getBounds(),{padding:[50,50]});
-
-document.getElementById("btnAvviaNavigazione").disabled = false;
-
-}
-catch(errore){
-
-risultato.innerText = "Errore: " + errore.message;
-
-console.error(errore);
-
-}
-
-}
-
-/****************************************************
-            AVVIA NAVIGAZIONE GPS
-****************************************************/
-
-function avviaNavigazione(){
-
-if(!puntiPercorso.length){
-
-alert("Calcola prima un percorso.");
-
-return;
-
-}
-
-navigazioneAttiva = true;
-
-indiceIstruzioneCorrente = 0;
-
-document.getElementById("pannelloNavigazione").style.display = "block";
-
-document.getElementById("btnCentra").style.display = "block";
-
-// Mostra toggle e collassa il pannello controlli
-document.getElementById("togglePanel").classList.add("visible");
-
-if(!pannelloCollapsed){
-
-    togglePanel();
-
-}
-
-if(navigator.geolocation){
-
-watchIdNavigazione = navigator.geolocation.watchPosition(
-aggiornaNavigazione,
-err=>console.error(err),
-{enableHighAccuracy:true, timeout:10000}
-);
-
-}else{
-
-alert("Geolocalizzazione non disponibile");
-
-}
-
-}
-
-/****************************************************
-          AGGIORNAMENTO NAVIGAZIONE GPS
-****************************************************/
-
-function aggiornaNavigazione(posizione){
-
-const coords = posizione.coords;
-
-ultimaPosizioneGps = {
-lat:coords.latitude,
-lon:coords.longitude,
-precisione:coords.accuracy
-};
-
-// Aggiorna marker posizione utente
-if(!markerPosizioneUtente){
-
-markerPosizioneUtente = L.marker([coords.latitude, coords.longitude],{
-icon:L.divIcon({
-className:"freccia-navigazione",
-html:"⬆️"
-})
-}).addTo(map);
-
-}else{
-
-markerPosizioneUtente.setLatLng([coords.latitude, coords.longitude]);
-
-}
-
-// Centra mappa se seguiPosizione attivo
-if(seguiPosizione){
-
-map.setView([coords.latitude, coords.longitude],17);
-
-}
-
-// Controlla se fuori percorso
-const distanzaMinima = Math.min(
-...puntiPercorso.map(p=>
-calcDistanza(coords.latitude, coords.longitude, p[0], p[1])
-)
-);
-
-if(distanzaMinima > SOGLIA_RICALCOLO_METRI){
-
-contatoreFuoriPercorso++;
-
-if(contatoreFuoriPercorso >= LETTURE_FUORI_PERCORSO_PER_RICALCOLO){
-
-console.log("Fuori percorso! Ricalcolo...");
-
-ricalcolaPercorso();
-
-}
-
-}else{
-
-contatoreFuoriPercorso = 0;
-
-}
-
-// Avanza istruzione se raggiunto il waypoint
-if(istruzioni.length && indiceIstruzioneCorrente < istruzioni.length){
-
-const istrCorrente = istruzioni[indiceIstruzioneCorrente];
-
-const distanzaIstruzione = calcDistanza(
-coords.latitude,
-coords.longitude,
-istrCorrente.lat,
-istrCorrente.lon
-);
-
-if(distanzaIstruzione < SOGLIA_AVANZAMENTO_METRI){
-
-indiceIstruzioneCorrente++;
-
-}
-
-}
-
-// Aggiorna pannello
-aggiornaPannelloNavigazione(coords);
-
-}
-
-/****************************************************
-        AGGIORNA PANNELLO NAVIGAZIONE
-****************************************************/
-
-function aggiornaPannelloNavigazione(coords){
-
-const pannello = document.getElementById("pannelloNavigazione");
-
-if(indiceIstruzioneCorrente >= istruzioni.length){
-
-pannello.innerHTML = `
-<div style="text-align:center; font-size:20px; color:#f1c40f; font-weight:bold;">
-✓ Destinazione raggiunta!
-</div>
-<button class="btn-termina" onclick="terminaNavigazione()">
-✕ Chiudi
-</button>
-`;
-
-return;
-
-}
-
-const istrCorrente = istruzioni[indiceIstruzioneCorrente];
-
-const distanzaRimanente = istruzioni
-.slice(indiceIstruzioneCorrente)
-.reduce((sum,istr,i)=>{
-
-if(i===0) return sum;
-
-const prev = istruzioni[indiceIstruzioneCorrente + i - 1];
-
-return sum + calcDistanza(prev.lat, prev.lon, istr.lat, istr.lon);
-
-},0) + calcDistanza(coords.latitude, coords.longitude, istrCorrente.lat, istrCorrente.lon);
-
-const velocita = Math.round(coords.speed * 3.6) || 0;
-
-// Determina il tipo di strada dall'istruzione corrente
-let tipoStrada = "urbana";
-
-if(indiceIstruzioneCorrente < istruzioni.length){
-    const fc = istruzioni[indiceIstruzioneCorrente].functionalClass;
-    tipoStrada = getTipoStrada(fc);
-}
-
-const limiteCamion = getLimiteVelocita(mezzoSelezionato.tipo, tipoStrada);
-
-document.getElementById("iconaManovra").innerText = getManovra(istrCorrente.manovra);
-
-document.getElementById("messaggioNavigazione").innerText = istrCorrente.messaggio;
-
-document.getElementById("distanzaManovra").innerText = distanzaRimanente < 1000 ? 
-Math.round(distanzaRimanente) + " m" : 
-(distanzaRimanente/1000).toFixed(1) + " km";
-
-document.getElementById("stradaAttuale").innerText = "Strada: " + (istrCorrente.strada || "???");
-
-document.getElementById("velocitaAttuale").innerText = velocita + " km/h";
-
-document.getElementById("limiteMezzoP").innerText = "Limite: " + limiteCamion + " km/h";
-
-document.getElementById("infoRimanente").innerText = arrivoCorrente ? "A: " + arrivoCorrente.etichetta : "";
-
-}
-
-function getManovra(manovra){
-
-const mappe = {
-"TURN_LEFT":"↙️",
-"TURN_RIGHT":"↘️",
-"TURN_SHARP_LEFT":"⬅️",
-"TURN_SHARP_RIGHT":"➡️",
-"TURN_SLIGHT_LEFT":"↖️",
-"TURN_SLIGHT_RIGHT":"↗️",
-"KEEP_LEFT":"↙️",
-"KEEP_RIGHT":"↘️",
-"GO_STRAIGHT":"⬆️",
-"ROUNDABOUT_LEFT":"↙️",
-"ROUNDABOUT_RIGHT":"↘️",
-"FORK_LEFT":"↙️",
-"FORK_RIGHT":"↘️"
-};
-
-return mappe[manovra] || "⬆️";
-
-}
-
-/****************************************************
-          RICALCOLO PERCORSO DINAMICO
-****************************************************/
-
-async function ricalcolaPercorso(){
-
-terminaNavigazione();
-
-try{
-
-const puntoPartenza = ultimaPosizioneGps;
-
-const puntoArrivo = arrivoCorrente;
-
-const urlRouting =
-
-`https://api.tomtom.com/routing/1/calculateRoute/${puntoPartenza.lat},${puntoPartenza.lon}:${puntoArrivo.lat},${puntoArrivo.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=80&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&routeType=fastest&language=it-IT`;
-
-const rispostaRouting = await fetch(urlRouting);
-
-const datiRouting = await rispostaRouting.json();
-
-const route = datiRouting.routes[0];
-
-puntiPercorso = route.legs.flatMap(gamba=>
-gamba.points.map(p=>
-[p.latitude,p.longitude]
-)
-);
-
-istruzioni = estraiIstruzioni(route);
-
-indiceIstruzioneCorrente = 0;
-
-contatoreFuoriPercorso = 0;
-
-// Aggiorna polilinea
-if(percorsoLayer) map.removeLayer(percorsoLayer);
-
-percorsoLayer = L.polyline(puntiPercorso,{
-color:"#e67e22",
-weight:4,
-opacity:0.8
-}).addTo(map);
-
-// Riavvia navigazione
-avviaNavigazione();
-
-}
-catch(errore){
-
-console.error("Errore ricalcolo percorso:", errore);
-
-}
-
-}
-
-/****************************************************
-            TERMINA NAVIGAZIONE
-****************************************************/
-
-function terminaNavigazione(){
-
-navigazioneAttiva = false;
-
-if(watchIdNavigazione !== null){
-
-navigator.geolocation.clearWatch(watchIdNavigazione);
-
-watchIdNavigazione = null;
-
-}
-
-if(markerPosizioneUtente){
-
-map.removeLayer(markerPosizioneUtente);
-
-markerPosizioneUtente = null;
-
-}
-
-document.getElementById("pannelloNavigazione").style.display = "none";
-
-document.getElementById("btnCentra").style.display = "none";
-
-document.getElementById("togglePanel").classList.remove("visible");
-
-// Riapri il pannello controlli
-if(pannelloCollapsed){
-
-    togglePanel();
-
-}
-
-seguiPosizione = true;
-
-}
-
-/****************************************************
-              FUNZIONI UTILITY
-****************************************************/
-
-function ricentraMappa(){
-
-if(ultimaPosizioneGps){
-
-map.setView([ultimaPosizioneGps.lat, ultimaPosizioneGps.lon],17);
-
-}
-
-}
-
-function calcDistanza(lat1,lon1,lat2,lon2){
-
-const R = 6371000; // raggio Terra in metri
-
-const dLat = (lat2-lat1)*Math.PI/180;
-
-const dLon = (lon2-lon1)*Math.PI/180;
-
-const a =
-Math.sin(dLat/2)*Math.sin(dLat/2) +
-Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)*Math.sin(dLon/2);
-
-const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-
-return R*c;
-
-}
-
-/****************************************************
-         INIZIALIZZAZIONE
-****************************************************/
-
-configuraAutocomplete("partenza");
-
-configuraAutocomplete("arrivo");
+initMap();
+setupMezzi();
 
 </script>
 
