@@ -244,6 +244,11 @@ document.addEventListener('click',e=>{if(!e.target.closest('.search-area,.panel-
 document.querySelectorAll('.mezzo').forEach(b => b.onclick = () => {
   mezzo = b.dataset.type;
   nomeMezzoSelezionato = b.textContent.trim().replace(/\s+/g, ' ');
+  $('truckMenu').textContent =
+    mezzo === 'fino12' ? '🚚' :
+    mezzo === 'oltre12' ? '🚛' :
+    mezzo === 'autobus' ? '🚌';
+  $('navTruck').textContent = $('truckMenu').textContent;
   $('modalMezzo').style.display = 'none';
 });
 
