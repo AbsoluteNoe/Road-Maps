@@ -15,7 +15,102 @@
     #directionsButton{display:none;position:absolute;top:84px;left:0;width:78px;height:78px;border-radius:50%;background:var(--teal);color:white;font-size:31px}.search-area.has-value #directionsButton{display:block}
     #routePanel{display:none;position:fixed;z-index:1900;top:0;left:clamp(0px,6vw,104px);width:min(510px,calc(100vw - clamp(0px,6vw,104px)));background:#fff;box-shadow:1px 3px 10px #0002;padding:18px 28px 20px}.panel-close{position:absolute;right:23px;top:8px;background:transparent;font-size:32px;color:#202124}.route-fields{position:relative;padding:38px 48px 10px 52px;border-bottom:1px solid var(--line)}.route-fields:before{content:"";position:absolute;left:18px;top:55px;height:37px;border-left:3px dotted #263238}.field-icon{position:absolute;left:7px;font-size:25px}.origin-icon{top:35px;color:#1473e6}.dest-icon{top:91px;color:#ef3d31}.route-input{height:50px;width:100%;margin-bottom:10px;border:1px solid #777;border-radius:9px;padding:0 45px 0 11px;font-size:17px;outline:none}.route-input:focus{border:2px solid var(--teal)}.swap{position:absolute;right:5px;top:67px;background:transparent;font-size:28px}.panel-search{position:relative}.field-search{position:absolute;right:7px;top:7px;background:transparent;color:var(--teal);font-size:25px}.route-suggestions{position:absolute;left:-80px;right:-28px;top:53px;max-height:330px;z-index:2;border-radius:0;background:#fff;box-shadow:none}.location-choice{display:flex;align-items:center;gap:20px;padding:24px 0 5px;border-top:1px solid #eee;font-size:18px;font-weight:600}.location-choice button{width:52px;height:52px;border-radius:50%;background:#e0f7f9;color:#006d80;font-size:27px}.route-summary{padding:17px 0 0}.route-summary .time{font-size:26px;color:var(--green)}.route-summary .muted{color:#6e7073;font-size:17px;margin-top:8px;line-height:1.4}.start-btn{display:none;margin:18px auto -5px;padding:11px 37px;border-radius:27px;background:var(--teal);color:#fff;font-size:22px}.start-btn.visible{display:block}
     #navTop{display:none;position:fixed;z-index:2100;top:8px;left:8px;right:8px;max-width:550px;background:#007c80;color:#fff;border-radius:14px;padding:13px 24px 12px 78px;box-shadow:0 2px 8px #0004}.nav-arrow{position:absolute;left:24px;top:16px;font-size:40px}.nav-small{font-size:14px}.nav-message{font-size:24px;font-weight:bold;line-height:1.05}.nav-truck{position:fixed;z-index:2100;top:89px;left:15px;width:66px;height:66px;border-radius:50%;background:#ffca10;font-size:35px;box-shadow:0 2px 7px #0004}.speed-box{display:none;position:fixed;z-index:2100;left:12px;bottom:127px;width:53px;height:53px;border-radius:50%;background:#fff;text-align:center;padding-top:8px;box-shadow:0 1px 5px #0004}.speed-box b{display:block;font-size:18px}.speed-box small{font-size:10px}.compass{display:none;position:fixed;z-index:2100;right:15px;bottom:125px;width:56px;height:56px;border-radius:50%;background:#fff;font-size:26px;box-shadow:0 1px 5px #0004}.user-dot{width:22px;height:22px;border-radius:50%;background:#1473e6;border:3px solid #fff;box-shadow:0 1px 5px #0008}.user-marker{background:transparent;border:0}.nav-bottom{display:none;position:fixed;z-index:2100;bottom:0;left:0;right:0;min-height:112px;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -2px 8px #0003;padding:16px 92px;text-align:center}.nav-bottom .eta{font-size:28px;color:var(--green);font-weight:bold}.nav-bottom .remain{color:#72767a;font-size:18px;margin-top:8px}.stop-nav{position:absolute;left:22px;top:20px;width:62px;height:62px;border:2px solid #5f676b;border-radius:50%;background:#fff;font-size:42px;color:#536066}.navigating #topbar,.navigating #routePanel{display:none!important}.navigating #navTop,.navigating .nav-truck,.navigating .speed-box,.navigating .compass,.navigating .nav-bottom{display:block}.navigating #mappa{filter:saturate(1.15) contrast(1.03)}
-    @media(max-width:600px){#topbar{gap:9px}.round-btn{width:58px;height:58px;flex-basis:58px;font-size:30px}.search-shell{height:56px}.search-area{width:calc(100vw - 88px)}.suggestions{top:55px}.route-fields{padding-left:44px}.route-suggestions{left:-72px;right:-28px}#routePanel{left:0;width:100%;padding:12px 18px}.nav-message{font-size:20px}}
+
+    @media (max-width: 600px) {
+      #topbar {
+        left: 8px;
+        right: 8px;
+        width: calc(100vw - 16px);
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .search-area {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .search-shell {
+        height: 54px;
+        border-radius: 27px;
+        padding: 0 12px 0 18px;
+      }
+
+      .search-shell input {
+        font-size: 16px;
+      }
+
+      .suggestions {
+        top: 54px;
+        max-height: 45vh;
+        border-radius: 0 0 14px 14px;
+      }
+
+      #directionsButton {
+        top: 74px;
+        width: 64px;
+        height: 64px;
+        font-size: 26px;
+      }
+
+      #routePanel {
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        padding: 14px 14px 16px;
+      }
+
+      .route-fields {
+        padding: 34px 36px 10px 40px;
+      }
+
+      .route-input {
+        height: 46px;
+        font-size: 16px;
+      }
+
+      .route-suggestions {
+        left: 0;
+        right: 0;
+        top: 49px;
+        max-height: 40vh;
+      }
+
+      #navTop {
+        left: 8px;
+        right: 8px;
+        max-width: none;
+        padding-left: 68px;
+      }
+
+      .nav-message {
+        font-size: 18px;
+      }
+
+      .nav-bottom {
+        padding: 14px 78px;
+        min-height: 104px;
+      }
+
+      .nav-bottom .eta {
+        font-size: 22px;
+      }
+
+      .nav-bottom .remain {
+        font-size: 15px;
+      }
+
+      .speed-box {
+        left: 10px;
+        bottom: 118px;
+      }
+
+      .compass {
+        right: 10px;
+        bottom: 116px;
+      }
+    }
+
     /* Il comando camion della navigazione è visibile solo durante la guida. */
     #navTruck{display:none}
     .navigating #navTruck{display:block}
@@ -30,7 +125,18 @@
 <script>
 const TOMTOM_KEY="scdR7UxKrzFdQO9ZC5i5qyYZrgmRVmUK";
 const limits={fino12:{urbana:50,extraurbana:80,autostrada:100},oltre12:{urbana:50,extraurbana:70,autostrada:80},autobus:{urbana:50,extraurbana:80,autostrada:100}};
-const map=L.map('mappa',{zoomControl:false}).setView([42.5,12.5],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+
+const map=L.map('mappa',{
+  zoomControl:false,
+  tap: !L.Browser.mobile,
+  dragging: true,
+  touchZoom: true,
+  scrollWheelZoom: true
+}).setView([42.5,12.5],6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+setTimeout(() => map.invalidateSize(), 300);
+window.addEventListener('resize', () => map.invalidateSize());
 
 let mezzo=null,nomeMezzoSelezionato='',destination=null,origin=null,route=null,routeLayer=null,startMarker=null,endMarker=null,userMarker=null,watchId=null,navigation=false,instructions=[],instructionIndex=0,lastPosition=null,offRouteCount=0;
 
@@ -63,7 +169,7 @@ function showSuggestions(box, results, onPick){
       </span>
     `;
 
-    row.addEventListener('mousedown', e => e.preventDefault());
+    row.addEventListener('pointerdown', e => e.preventDefault());
     row.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
@@ -140,7 +246,48 @@ $('clearDestination').onclick = () => {
   clearRoute();
 };
 
-function annullaIndicazioni(){origin=null;destination=null;$('destinationInput').value='';$('originInput').value='';$('routeDestinationInput').value='';$('destinationSearch').classList.remove('has-value');nascondiIndicazioni();hideAllSuggestions();clearRoute();if(endMarker){map.removeLayer(endMarker);endMarker=null}$('routePanel').style.display='none'}$('directionsButton').onclick=async()=>{const typed=$('destinationInput').value.trim();if(!typed)return;if(!destination){try{const u=`https://api.tomtom.com/search/2/search/${encodeURIComponent(typed)}.json?key=${TOMTOM_KEY}&limit=1&countrySet=IT&idxSet=POI,Geo,Addr,Str`;const d=await (await fetch(u)).json();if(!d.results?.length)throw Error();setDestination(pointFor(d.results[0]))}catch(e){alert('Seleziona una destinazione valida dai suggerimenti.');return}}$('routePanel').style.display='block';$('routeDestinationInput').value=destination.label;$('originInput').focus()};
+function annullaIndicazioni(){
+  origin = null;
+  destination = null;
+  route = null;
+
+  $('destinationInput').value = '';
+  $('originInput').value = '';
+  $('routeDestinationInput').value = '';
+  $('destinationSearch').classList.remove('has-value');
+  hideAllSuggestions();
+  clearRoute();
+
+  if(endMarker){
+    map.removeLayer(endMarker);
+    endMarker = null;
+  }
+
+  $('routePanel').style.display = 'none';
+  setTimeout(() => map.invalidateSize(), 200);
+}
+
+$('directionsButton').onclick = async () => {
+  const typed = $('destinationInput').value.trim();
+  if(!typed) return;
+
+  if(!destination){
+    try{
+      const u = `https://api.tomtom.com/search/2/search/${encodeURIComponent(typed)}.json?key=${TOMTOM_KEY}&limit=1&countrySet=IT&idxSet=POI,Geo,Addr,Str`;
+      const d = await (await fetch(u)).json();
+      if(!d.results?.length) throw Error();
+      setDestination(pointFor(d.results[0]));
+    }catch(e){
+      alert('Seleziona una destinazione valida dai suggerimenti.');
+      return;
+    }
+  }
+
+  $('routePanel').style.display = 'block';
+  setTimeout(() => map.invalidateSize(), 200);
+  $('routeDestinationInput').value = destination.label;
+  $('originInput').focus();
+};
 
 $('closePanel').onclick = () => {
   origin = null;
@@ -164,6 +311,7 @@ $('closePanel').onclick = () => {
   }
 
   document.body.classList.remove('navigating');
+  setTimeout(() => map.invalidateSize(), 200);
 };
 
 $('swapRoute').onclick=()=>{if(!origin||origin.isUser||!destination)return;const old=origin;origin={...destination,isUser:false};setDestination(old);$('originInput').value=origin.label;maybeRoute()};
@@ -176,6 +324,6 @@ $('summaryDetails').textContent = origin.isUser
   : `Percorso calcolato per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
 
 $('routeSummary').hidden=false;$('startNavigation').classList.toggle('visible',origin.isUser)}catch(e){alert('Non è stato possibile calcolare il percorso. Verifica i punti selezionati.')}}
-$('startNavigation').onclick=()=>{if(route&&origin?.isUser)startNavigation()};function startNavigation(){navigation=true;instructionIndex=0;document.body.classList.add('navigating');$('routePanel').style.display='none';watchId=navigator.geolocation.watchPosition(updateNavigation,()=>alert('GPS non disponibile. Attiva la geolocalizzazione.'),{enableHighAccuracy:true,maximumAge:2000,timeout:12000})}function stopNavigation(){navigation=false;document.body.classList.remove('navigating');if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;if(userMarker){map.removeLayer(userMarker);userMarker=null}}$('stopNavigation').onclick=stopNavigation;
+$('startNavigation').onclick=()=>{if(route&&origin?.isUser)startNavigation()};function startNavigation(){navigation=true;instructionIndex=0;document.body.classList.add('navigating');$('routePanel').style.display='none';setTimeout(() => map.invalidateSize(), 200);watchId=navigator.geolocation.watchPosition(updateNavigation,()=>alert('GPS non disponibile. Attiva la geolocalizzazione.'),{enableHighAccuracy:true,maximumAge:2000,timeout:12000})}function stopNavigation(){navigation=false;document.body.classList.remove('navigating');if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;if(userMarker){map.removeLayer(userMarker);userMarker=null}}$('stopNavigation').onclick=stopNavigation;
 function getArrow(m){return({TURN_LEFT:'&#8592;',TURN_RIGHT:'&#8594;',TURN_SHARP_LEFT:'&#11013;',TURN_SHARP_RIGHT:'&#10145;',TURN_SLIGHT_LEFT:'&#8598;',TURN_SLIGHT_RIGHT:'&#8599;'})[m]||'&#8593;'}function updateNavigation(pos){lastPosition={lat:pos.coords.latitude,lon:pos.coords.longitude};if(!userMarker)userMarker=L.marker([lastPosition.lat,lastPosition.lon],{icon:L.divIcon({className:'user-marker',html:'<div class="user-dot"></div>'})}).addTo(map);else userMarker.setLatLng([lastPosition.lat,lastPosition.lon]);map.setView([lastPosition.lat,lastPosition.lon],18,{animate:true});$('speedValue').textContent=Math.round((pos.coords.speed||0)*3.6);while(instructionIndex<instructions.length-1&&distance(lastPosition.lat,lastPosition.lon,instructions[instructionIndex].lat,instructions[instructionIndex].lon)<35)instructionIndex++;const i=instructions[instructionIndex]||{msg:'Prosegui dritto',street:'la destinazione',maneuver:''};$('navArrow').innerHTML=getArrow(i.maneuver);$('navMessage').textContent=i.msg;$('navStreet').textContent=i.street||'la destinazione';const remaining=route.summary.lengthInMeters;const eta=new Date(Date.now()+route.summary.travelTimeInSeconds*1000);$('etaText').textContent=fmtTime(route.summary.travelTimeInSeconds);$('remainText').textContent=`${Math.round(remaining/1000)} km · arrivo ${eta.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}`}$('recenter').onclick=()=>lastPosition&&map.setView([lastPosition.lat,lastPosition.lon],18);
 </script></body></html>
