@@ -247,7 +247,7 @@ document.querySelectorAll('.mezzo').forEach(b => b.onclick = () => {
   $('truckMenu').textContent =
     mezzo === 'fino12' ? '🚚' :
     mezzo === 'oltre12' ? '🚛' :
-    mezzo === 'autobus' ? '🚌';
+    mezzo === 'autobus' ? '🚌' :
   $('navTruck').textContent = $('truckMenu').textContent;
   $('modalMezzo').style.display = 'none';
 });
