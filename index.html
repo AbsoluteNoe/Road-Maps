@@ -14,7 +14,15 @@
     .suggestions{display:none;position:absolute;top:60px;left:0;width:100%;max-height:calc(100vh - 100px);overflow:auto;background:#fff;border-radius:0 0 18px 18px;box-shadow:0 6px 12px #0003;padding:6px 0;z-index:1500}.suggestions.open{display:block}.suggestion{display:flex;align-items:center;gap:17px;min-height:57px;padding:10px 23px;cursor:pointer}.suggestion:hover{background:#f4f8f8}.suggestion .pin{font-size:23px;color:#5f676b}.suggestion-main{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.suggestion-detail{font-size:15px;color:#666}.empty{padding:18px 24px;color:#667}
     #directionsButton{display:none;position:absolute;top:84px;left:0;width:78px;height:78px;border-radius:50%;background:var(--teal);color:white;font-size:31px}.search-area.has-value #directionsButton{display:block}
     #routePanel{display:none;position:fixed;z-index:1900;top:0;left:clamp(0px,6vw,104px);width:min(510px,calc(100vw - clamp(0px,6vw,104px)));background:#fff;box-shadow:1px 3px 10px #0002;padding:18px 28px 20px}.panel-close{position:absolute;right:23px;top:8px;background:transparent;font-size:32px;color:#202124}.route-fields{position:relative;padding:38px 48px 10px 52px;border-bottom:1px solid var(--line)}.route-fields:before{content:"";position:absolute;left:18px;top:55px;height:37px;border-left:3px dotted #263238}.field-icon{position:absolute;left:7px;font-size:25px}.origin-icon{top:35px;color:#1473e6}.dest-icon{top:91px;color:#ef3d31}.route-input{height:50px;width:100%;margin-bottom:10px;border:1px solid #777;border-radius:9px;padding:0 45px 0 11px;font-size:17px;outline:none}.route-input:focus{border:2px solid var(--teal)}.swap{position:absolute;right:5px;top:67px;background:transparent;font-size:28px}.panel-search{position:relative}.field-search{position:absolute;right:7px;top:7px;background:transparent;color:var(--teal);font-size:25px}.route-suggestions{position:absolute;left:-80px;right:-28px;top:53px;max-height:330px;z-index:2;border-radius:0;background:#fff;box-shadow:none}.location-choice{display:flex;align-items:center;gap:20px;padding:24px 0 5px;border-top:1px solid #eee;font-size:18px;font-weight:600}.location-choice button{width:52px;height:52px;border-radius:50%;background:#e0f7f9;color:#006d80;font-size:27px}.route-summary{padding:17px 0 0}.route-summary .time{font-size:26px;color:var(--green)}.route-summary .muted{color:#6e7073;font-size:17px;margin-top:8px;line-height:1.4}.start-btn{display:none;margin:18px auto -5px;padding:11px 37px;border-radius:27px;background:var(--teal);color:#fff;font-size:22px}.start-btn.visible{display:block}
-    #navTop{display:none;position:fixed;z-index:2100;top:8px;left:8px;right:8px;max-width:550px;background:#007c80;color:#fff;border-radius:14px;padding:13px 24px 12px 78px;box-shadow:0 2px 8px #0004}.nav-arrow{position:absolute;left:24px;top:16px;font-size:40px}.nav-small{font-size:14px}.nav-message{font-size:24px;font-weight:bold;line-height:1.05}.nav-truck{position:fixed;z-index:2100;top:89px;left:15px;width:66px;height:66px;border-radius:50%;background:#ffca10;font-size:35px;box-shadow:0 2px 7px #0004}.speed-box{display:none;position:fixed;z-index:2100;left:12px;bottom:127px;width:53px;height:53px;border-radius:50%;background:#fff;text-align:center;padding-top:8px;box-shadow:0 1px 5px #0004}.speed-box b{display:block;font-size:18px}.speed-box small{font-size:10px}.compass{display:none;position:fixed;z-index:2100;right:15px;bottom:125px;width:56px;height:56px;border-radius:50%;background:#fff;font-size:26px;box-shadow:0 1px 5px #0004}.user-dot{width:22px;height:22px;border-radius:50%;background:#1473e6;border:3px solid #fff;box-shadow:0 1px 5px #0008}.user-marker{background:transparent;border:0}.nav-bottom{display:none;position:fixed;z-index:2100;bottom:0;left:0;right:0;min-height:112px;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -2px 8px #0003;padding:16px 92px;text-align:center}.nav-bottom .eta{font-size:28px;color:var(--green);font-weight:bold}.nav-bottom .remain{color:#72767a;font-size:18px;margin-top:8px}.stop-nav{position:absolute;left:22px;top:20px;width:62px;height:62px;border:2px solid #5f676b;border-radius:50%;background:#fff;font-size:42px;color:#536066}.navigating #topbar,.navigating #routePanel{display:none!important}.navigating #navTop,.navigating .nav-truck,.navigating .speed-box,.navigating .compass,.navigating .nav-bottom{display:block}.navigating #mappa{filter:saturate(1.15) contrast(1.03)}
+    #navTop{display:none;position:fixed;z-index:2100;top:8px;left:8px;right:8px;max-width:550px;background:#007c80;color:#fff;border-radius:14px;padding:13px 24px 12px 78px;box-shadow:0 2px 8px #0004}.nav-arrow{position:absolute;left:24px;top:16px;font-size:40px}.nav-small{font-size:14px}.nav-message{font-size:24px;font-weight:bold;line-height:1.05}
+
+/*---------- BOTTONE "CAMBIO MEZZO" DURANTE NAVIGAZIONE ----------*/
+
+.nav-truck{position:fixed;z-index:2100;top:89px;left:15px;width:66px;height:66px;border-radius:50%;background:#ffca10;font-size:35px;box-shadow:0 2px 7px #0004}
+
+/*-----------------------------------------------------------------*/
+
+.speed-box{display:none;position:fixed;z-index:2100;left:12px;bottom:127px;width:53px;height:53px;border-radius:50%;background:#fff;text-align:center;padding-top:8px;box-shadow:0 1px 5px #0004}.speed-box b{display:block;font-size:18px}.speed-box small{font-size:10px}.compass{display:none;position:fixed;z-index:2100;right:15px;bottom:125px;width:56px;height:56px;border-radius:50%;background:#fff;font-size:26px;box-shadow:0 1px 5px #0004}.user-dot{width:22px;height:22px;border-radius:50%;background:#1473e6;border:3px solid #fff;box-shadow:0 1px 5px #0008}.user-marker{background:transparent;border:0}.nav-bottom{display:none;position:fixed;z-index:2100;bottom:0;left:0;right:0;min-height:112px;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -2px 8px #0003;padding:16px 92px;text-align:center}.nav-bottom .eta{font-size:28px;color:var(--green);font-weight:bold}.nav-bottom .remain{color:#72767a;font-size:18px;margin-top:8px}.stop-nav{position:absolute;left:22px;top:20px;width:62px;height:62px;border:2px solid #5f676b;border-radius:50%;background:#fff;font-size:42px;color:#536066}.navigating #topbar,.navigating #routePanel{display:none!important}.navigating #navTop,.navigating .nav-truck,.navigating .speed-box,.navigating .compass,.navigating .nav-bottom{display:block}.navigating #mappa{filter:saturate(1.15) contrast(1.03)}
 
     @media (max-width: 600px) {
       #topbar {
@@ -244,13 +252,25 @@ document.addEventListener('click',e=>{if(!e.target.closest('.search-area,.panel-
 document.querySelectorAll('.mezzo').forEach(b => b.onclick = () => {
   mezzo = b.dataset.type;
   nomeMezzoSelezionato = b.textContent.trim().replace(/\s+/g, ' ');
+  const icon =
+    mezzo === 'fino12' ? '🚚' :
+    mezzo === 'oltre12' ? '🚛' :
+    '🚌';
+  $('truckMenu').textContent = icon;
+  $('navTruck').textContent = icon;
+  $('modalMezzo').style.display = 'none';
+});
+
+/*   document.querySelectorAll('.mezzo').forEach(b => b.onclick = () => {
+  mezzo = b.dataset.type;
+  nomeMezzoSelezionato = b.textContent.trim().replace(/\s+/g, ' ');
   $('truckMenu').textContent =
     mezzo === 'fino12' ? '🚚' :
     mezzo === 'oltre12' ? '🚛' :
     mezzo === 'autobus' ? '🚌' :
   $('navTruck').textContent = $('truckMenu').textContent;
   $('modalMezzo').style.display = 'none';
-});
+}); */
 
 function openMezzo(){
   if(mezzo) $('modalMezzo').classList.add('modal-change');
