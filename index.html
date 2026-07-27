@@ -11,6 +11,27 @@
     #mappa{position:fixed;inset:0;z-index:1}.leaflet-container{background:#c4e6e4}.leaflet-control-zoom{display:none}
     #modalMezzo{position:fixed;inset:0;background:rgba(8,25,32,.58);display:flex;align-items:center;justify-content:center;z-index:4000;padding:20px}.modal-card{position:relative;width:min(440px,100%);background:#fff;border-radius:20px;padding:26px;box-shadow:0 18px 48px #0006}.modal-card h1{font-size:23px;margin:0 0 8px}.modal-card p{color:#657076;margin:0 0 20px}.modal-close{display:none;position:absolute;right:15px;top:11px;background:transparent;font-size:28px;color:#30383b}.modal-change .modal-close{display:block}.mezzo{display:block;width:100%;padding:17px;margin:10px 0;border:1px solid #d7dde0;border-radius:13px;background:#fff;text-align:left;color:#22353b;font-weight:700}.mezzo:hover{border-color:var(--teal);background:#edfafa}.mezzo small{display:block;font-weight:400;color:#657076;margin-top:5px}
     #topbar{position:fixed;z-index:1000;top:max(12px,env(safe-area-inset-top));left:10px;display:flex;align-items:flex-start;gap:16px;pointer-events:none}.round-btn,.search-shell,.action-round{pointer-events:auto;box-shadow:0 2px 9px #0003}.round-btn{width:68px;height:68px;flex:0 0 68px;border-radius:50%;background:#fff;color:#4d5559;font-size:36px;line-height:1}.round-btn:active,.action-round:active{transform:scale(.96)}.search-area{position:relative;width:min(468px,calc(100vw - 110px))}.search-shell{height:62px;border-radius:31px;background:#fff;display:flex;align-items:center;padding:0 15px 0 29px}.search-shell input{border:0;outline:0;width:100%;font-size:18px;color:#202124;background:transparent}.search-icon,.clear-btn{width:36px;height:36px;background:transparent;color:#566167;font-size:27px;padding:0}.clear-btn{display:none;font-size:30px}.search-area.has-value .clear-btn{display:block}
+.start-message{
+  display:none;
+  position:fixed;
+  z-index:2600;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  background:#fff;
+  color:#000;
+  border-radius:18px;
+  padding:14px 22px;
+  box-shadow:0 2px 9px #0003;
+  font-size:26px;
+  font-weight:700;
+  text-align:center;
+  pointer-events:none;
+  max-width:calc(100vw - 40px);
+}
+.navigating .start-message{
+  display:block;
+}
     .suggestions{display:none;position:absolute;top:60px;left:0;width:100%;max-height:calc(100vh - 100px);overflow:auto;background:#fff;border-radius:0 0 18px 18px;box-shadow:0 6px 12px #0003;padding:6px 0;z-index:1500}.suggestions.open{display:block}.suggestion{display:flex;align-items:center;gap:17px;min-height:57px;padding:10px 23px;cursor:pointer}.suggestion:hover{background:#f4f8f8}.suggestion .pin{font-size:23px;color:#5f676b}.suggestion-main{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.suggestion-detail{font-size:15px;color:#666}.empty{padding:18px 24px;color:#667}
     #directionsButton{display:none;position:absolute;top:84px;left:0;width:78px;height:78px;border-radius:50%;background:var(--teal);color:white;font-size:31px}.search-area.has-value #directionsButton{display:block}
     #routePanel{display:none;position:fixed;z-index:1900;top:0;left:clamp(0px,6vw,104px);width:min(510px,calc(100vw - clamp(0px,6vw,104px)));background:#fff;box-shadow:1px 3px 10px #0002;padding:18px 28px 20px}.panel-close{position:absolute;right:23px;top:8px;background:transparent;font-size:32px;color:#202124}.route-fields{position:relative;padding:38px 48px 10px 52px;border-bottom:1px solid var(--line)}.route-fields:before{content:"";position:absolute;left:18px;top:55px;height:37px;border-left:3px dotted #263238}.field-icon{position:absolute;left:7px;font-size:25px}.origin-icon{top:35px;color:#1473e6}.dest-icon{top:91px;color:#ef3d31}.route-input{height:50px;width:100%;margin-bottom:10px;border:1px solid #777;border-radius:9px;padding:0 45px 0 11px;font-size:17px;outline:none}.route-input:focus{border:2px solid var(--teal)}.swap{position:absolute;right:5px;top:67px;background:transparent;font-size:28px}.panel-search{position:relative}.field-search{position:absolute;right:7px;top:7px;background:transparent;color:var(--teal);font-size:25px}.route-suggestions{position:absolute;left:-80px;right:-28px;top:53px;max-height:330px;z-index:2;border-radius:0;background:#fff;box-shadow:none}.location-choice{display:flex;align-items:center;gap:20px;padding:24px 0 5px;border-top:1px solid #eee;font-size:18px;font-weight:600}.location-choice button{width:52px;height:52px;border-radius:50%;background:#e0f7f9;color:#006d80;font-size:27px}.route-summary{padding:17px 0 0}.route-summary .time{font-size:26px;color:var(--green)}.route-summary .muted{color:#6e7073;font-size:17px;margin-top:8px;line-height:1.4}.start-btn{display:none;margin:18px auto -5px;padding:11px 37px;border-radius:27px;background:var(--teal);color:#fff;font-size:22px}.start-btn.visible{display:block}
@@ -378,12 +399,9 @@ function startNavigation(){
 
 /*-----------------------BUONA STRADA---------------------*/
 
-$('etaText').textContent='Buona Strada!';
-$('remainText').textContent='';
+$('startMessage').style.display = 'block';
 setTimeout(() => {
-  if(navigation && !arrived){
-    $('etaText').textContent='';
-  }
+  $('startMessage').style.display = 'none';
 }, 5000);
 
 /*-------------------------------------------------------*/
@@ -549,4 +567,7 @@ function updateNavigation(pos){
 
 
 $('recenter').onclick=()=>lastPosition&&map.setView([lastPosition.lat,lastPosition.lon],18);
-</script></body></html>
+</script>
+<div id="startMessage" class="start-message">Buona Strada!</div>
+</body>
+</html>
