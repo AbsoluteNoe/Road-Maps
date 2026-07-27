@@ -155,7 +155,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&
 setTimeout(() => map.invalidateSize(), 300);
 window.addEventListener('resize', () => map.invalidateSize());
 
-let mezzo=null,nomeMezzoSelezionato='',destination=null,origin=null,route=null,routeLayer=null,startMarker=null,endMarker=null,userMarker=null,watchId=null,navigation=false,instructions=[],instructionIndex=0,lastPosition=null,offRouteCount=0;
+let mezzo=null,nomeMezzoSelezionato='',destination=null,origin=null,route=null,routeLayer=null,startMarker=null,endMarker=null,userMarker=null,watchId=null,navigation=false,instructions=[],instructionIndex=0,lastPosition=null,offRouteCount=0,lastFixTime=0,recalcTimer=null,arrived=false;
 
 const $=id=>document.getElementById(id);const fmtTime=s=>s>=3600?`${Math.floor(s/3600)} h ${Math.round(s%3600/60)} min`:`${Math.round(s/60)} min`;const distance=(a,b,c,d)=>{const R=6371e3,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,z=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))};
 function labelFor(r){return r.poi?.name||r.address?.freeformAddress||r.address?.municipality||'Luogo'}function pointFor(r){return {lat:r.position.lat,lon:r.position.lon,label:labelFor(r)}}
@@ -346,10 +346,174 @@ $('summaryDetails').textContent = origin.isUser
   : `Percorso calcolato per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
 
 $('routeSummary').hidden=false;$('startNavigation').classList.toggle('visible',origin.isUser)}catch(e){alert('Non è stato possibile calcolare il percorso. Verifica i punti selezionati.')}}
-$('startNavigation').onclick=()=>{if(route&&origin?.isUser)startNavigation()};function startNavigation(){navigation=true;instructionIndex=0;document.body.classList.add('navigating');
+$('startNavigation').onclick=()=>{if(route&&origin?.isUser)startNavigation()};
 
-$('summaryDetails').textContent = `Percorso per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
+function startNavigation(){
+  navigation=true;
+  arrived=false;
+  instructionIndex=0;
+  offRouteCount=0;
+  lastFixTime=0;
+  document.body.classList.add('navigating');
+  $('summaryDetails').textContent=`Percorso per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
+  $('routePanel').style.display='none';
+  setTimeout(()=>map.invalidateSize(),200);
+  if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+  watchId=navigator.geolocation.watchPosition(updateNavigation,(err)=>{if(err.code!==3&&!arrived) alert('GPS non disponibile.')},{enableHighAccuracy:true,maximumAge:10000,timeout:30000})
+}
 
-$('routePanel').style.display='none';setTimeout(() => map.invalidateSize(), 200);watchId=navigator.geolocation.watchPosition(updateNavigation,()=>alert('GPS non disponibile.'),{enableHighAccuracy:true,maximumAge:10000,timeout:30000})}function stopNavigation(){navigation=false;document.body.classList.remove('navigating');if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;if(userMarker){map.removeLayer(userMarker);userMarker=null}}$('stopNavigation').onclick=stopNavigation;
-function getArrow(m){return({TURN_LEFT:'&#8592;',TURN_RIGHT:'&#8594;',TURN_SHARP_LEFT:'&#11013;',TURN_SHARP_RIGHT:'&#10145;',TURN_SLIGHT_LEFT:'&#8598;',TURN_SLIGHT_RIGHT:'&#8599;'})[m]||'&#8593;'}function updateNavigation(pos){lastPosition={lat:pos.coords.latitude,lon:pos.coords.longitude};if(!userMarker)userMarker=L.marker([lastPosition.lat,lastPosition.lon],{icon:L.divIcon({className:'user-marker',html:'<div class="user-dot"></div>'})}).addTo(map);else userMarker.setLatLng([lastPosition.lat,lastPosition.lon]);map.setView([lastPosition.lat,lastPosition.lon],18,{animate:true});$('speedValue').textContent=Math.round((pos.coords.speed||0)*3.6);while(instructionIndex<instructions.length-1&&distance(lastPosition.lat,lastPosition.lon,instructions[instructionIndex].lat,instructions[instructionIndex].lon)<35)instructionIndex++;const i=instructions[instructionIndex]||{msg:'Prosegui dritto',street:'la destinazione',maneuver:''};$('navArrow').innerHTML=getArrow(i.maneuver);$('navMessage').textContent=i.msg;$('navStreet').textContent=i.street||'la destinazione';const remaining=route.summary.lengthInMeters;const eta=new Date(Date.now()+route.summary.travelTimeInSeconds*1000);$('etaText').textContent=fmtTime(route.summary.travelTimeInSeconds);$('remainText').textContent=`${Math.round(remaining/1000)} km · arrivo ${eta.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}`}$('recenter').onclick=()=>lastPosition&&map.setView([lastPosition.lat,lastPosition.lon],18);
+function stopNavigation(){navigation=false;document.body.classList.remove('navigating');if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;if(userMarker){map.removeLayer(userMarker);userMarker=null}}$('stopNavigation').onclick=stopNavigation;
+function getArrow(m){return({TURN_LEFT:'&#8592;',TURN_RIGHT:'&#8594;',TURN_SHARP_LEFT:'&#11013;',TURN_SHARP_RIGHT:'&#10145;',TURN_SLIGHT_LEFT:'&#8598;',TURN_SLIGHT_RIGHT:'&#8599;'})[m]||'&#8593;'}
+
+function clearNavigationArtifacts(){
+  if(userMarker){
+    map.removeLayer(userMarker);
+    userMarker=null;
+  }
+  if(recalcTimer){
+    clearTimeout(recalcTimer);
+    recalcTimer=null;
+  }
+}
+
+function getRouteUrl(o,d){
+  return `https://api.tomtom.com/routing/1/calculateRoute/${o.lat},${o.lon}:${d.lat},${d.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=80&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&routeType=fastest&language=it-IT&instructionsType=text&computeBestOrder=false`;
+}
+
+function buildRouteData(d){
+  route=d.routes[0];
+  const points=route.legs.flatMap(l=>l.points.map(p=>[p.latitude,p.longitude]));
+  instructions=(route.guidance?.instructions||[]).filter(i=>i.point).map(i=>({lat:i.point.latitude,lon:i.point.longitude,msg:i.message||'Prosegui dritto',street:i.street||i.signpostText||'',maneuver:i.maneuver||''}));
+  if(routeLayer) map.removeLayer(routeLayer);
+  routeLayer=L.polyline(points,{color:'#3210d8',weight:6,opacity:.9,smoothFactor:1}).addTo(map);
+  if(startMarker) map.removeLayer(startMarker);
+  startMarker=L.marker([origin.lat,origin.lon]).addTo(map);
+  if(endMarker) map.removeLayer(endMarker);
+  endMarker=L.marker([destination.lat,destination.lon]).addTo(map);
+  map.fitBounds(routeLayer.getBounds(),{padding:[50,50]});
+  $('summaryTime').innerHTML=`${fmtTime(route.summary.travelTimeInSeconds)} <span style="color:#333;font-weight:normal">(${Math.round(route.summary.lengthInMeters/1000)} km)</span>`;
+  $('summaryDetails').textContent=origin.isUser?'Percorso per il tuo mezzo':`Percorso calcolato per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
+  $('routeSummary').hidden=false;
+  $('startNavigation').classList.toggle('visible',origin.isUser);
+}
+
+async function maybeRoute(){
+  if(!origin||!destination||!mezzo) return;
+  clearRoute();
+  try{
+    const d=await (await fetch(getRouteUrl(origin,destination))).json();
+    if(!d.routes?.length) throw Error();
+    buildRouteData(d);
+  }catch(e){
+    alert('Non è stato possibile calcolare il percorso. Verifica i punti selezionati.');
+  }
+}
+
+
+function getArrow(m){return({TURN_LEFT:'&#8592;',TURN_RIGHT:'&#8594;',TURN_SHARP_LEFT:'&#11013;',TURN_SHARP_RIGHT:'&#10145;',TURN_SLIGHT_LEFT:'&#8598;',TURN_SLIGHT_RIGHT:'&#8599;'})[m]||'&#8593;'}
+
+function nextInstructionForPosition(lat,lon){
+  while(instructionIndex<instructions.length-1 && distance(lat,lon,instructions[instructionIndex].lat,instructions[instructionIndex].lon)<35) instructionIndex++;
+  return instructions[instructionIndex]||{msg:'Prosegui dritto',street:'la destinazione',maneuver:''};
+}
+
+function scheduleReroute(lat,lon){
+  if(recalcTimer) return;
+  recalcTimer=setTimeout(async()=>{
+    recalcTimer=null;
+    if(!navigation||arrived||!destination) return;
+    try{
+      const d=await (await fetch(getRouteUrl({lat,lon},destination))).json();
+      if(d.routes?.length){
+        buildRouteData(d);
+      }
+    }catch(e){}
+  },3500);
+}
+
+function finalizeArrival(){
+  arrived=true;
+  navigation=false;
+  document.body.classList.remove('navigating');
+  if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+  watchId=null;
+  clearNavigationArtifacts();
+  $('navMessage').textContent='Sei arrivato a destinazione';
+  $('navStreet').textContent='';
+  $('navArrow').innerHTML='&#127937;';
+  $('speedValue').textContent='0';
+  $('etaText').textContent='';
+  $('remainText').textContent='Sei arrivato a destinazione';
+  $('navBottom').style.display='block';
+  $('navTop').style.display='block';
+  $('routePanel').style.display='none';
+}
+
+function updateNavigation(pos){
+  if(arrived) return;
+
+  const lat=pos.coords.latitude, lon=pos.coords.longitude, spd=(pos.coords.speed||0)*3.6;
+  const now=Date.now();
+
+  if(lastPosition){
+    const d=distance(lastPosition.lat,lastPosition.lon,lat,lon);
+    const dt=Math.max(1,(now-lastFixTime)/1000);
+    const target=route?.summary?.lengthInMeters ? Math.max(2.5,Math.min(18,(route.summary.lengthInMeters/1000)*0.03)) : 8;
+    const alpha=1-Math.exp(-dt/target);
+    const smoothLat=lastPosition.lat+(lat-lastPosition.lat)*alpha;
+    const smoothLon=lastPosition.lon+(lon-lastPosition.lon)*alpha;
+    lastPosition={lat:smoothLat,lon:smoothLon};
+
+    if(!userMarker){
+      userMarker=L.marker([smoothLat,smoothLon],{icon:L.divIcon({className:'user-marker',html:'<div class="user-dot"></div>'})}).addTo(map);
+    }else{
+      userMarker.setLatLng([smoothLat,smoothLon]);
+    }
+
+    map.setView([smoothLat,smoothLon],18,{animate:true});
+
+    if(distance(smoothLat,smoothLon,destination.lat,destination.lon)<45){
+      $('speedValue').textContent='0';
+      $('navMessage').textContent='Sei arrivato a destinazione';
+      $('navStreet').textContent='';
+      $('remainText').textContent='Sei arrivato a destinazione';
+      finalizeArrival();
+      return;
+    }
+
+    if(d>120){
+      offRouteCount++;
+      if(offRouteCount>=2) scheduleReroute(smoothLat,smoothLon);
+    }else{
+      offRouteCount=0;
+    }
+  }else{
+    lastPosition={lat,lon};
+    if(!userMarker){
+      userMarker=L.marker([lat,lon],{icon:L.divIcon({className:'user-marker',html:'<div class="user-dot"></div>'})}).addTo(map);
+    }else{
+      userMarker.setLatLng([lat,lon]);
+    }
+    map.setView([lat,lon],18,{animate:true});
+  }
+
+  lastFixTime=now;
+  const p=lastPosition||{lat,lon};
+  $('speedValue').textContent=Math.round(spd);
+
+  const i=nextInstructionForPosition(p.lat,p.lon);
+  $('navArrow').innerHTML=getArrow(i.maneuver);
+  $('navMessage').textContent=i.msg;
+  $('navStreet').textContent=i.street||'la destinazione';
+
+  const remaining=Math.max(0,Math.round(distance(p.lat,p.lon,destination.lat,destination.lon)/1000));
+  const etaSec=Math.max(0,Math.round((route?.summary?.travelTimeInSeconds||0) * (remaining / Math.max(1,Math.round(route?.summary?.lengthInMeters/1000)))));
+  const eta=new Date(Date.now()+etaSec*1000);
+
+  $('etaText').textContent=etaSec?fmtTime(etaSec):'';
+  $('remainText').textContent=etaSec ? `${remaining} km · arrivo ${eta.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}` : 'Sei arrivato a destinazione';
+}
+
+
+$('recenter').onclick=()=>lastPosition&&map.setView([lastPosition.lat,lastPosition.lon],18);
 </script></body></html>
