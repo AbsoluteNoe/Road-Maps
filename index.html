@@ -137,8 +137,8 @@
     }
 
     /* Il comando camion della navigazione è visibile solo durante la guida. */
-   /* #navTruck{display:none}
-    .navigating #navTruck{display:block} */
+   #navTruck{display:none}
+    .navigating #navTruck{display:block}
   </style>
 </head>
 <body>
@@ -375,6 +375,14 @@ function startNavigation(){
   offRouteCount=0;
   lastFixTime=0;
   document.body.classList.add('navigating');
+$('etaText').textContent='Buona Strada!';
+$('remainText').textContent='';
+setTimeout(() => {
+  if(navigation && !arrived){
+    $('etaText').textContent='';
+  }
+}, 5000);
+
   $('summaryDetails').textContent=`Percorso per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
   $('routePanel').style.display='none';
   setTimeout(()=>map.invalidateSize(),200);
