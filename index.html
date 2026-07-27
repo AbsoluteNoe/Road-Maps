@@ -390,6 +390,7 @@ $('routeSummary').hidden=false;$('startNavigation').classList.toggle('visible',o
 $('startNavigation').onclick=()=>{if(route&&origin?.isUser)startNavigation()};
 
 function startNavigation(){
+  hasCenteredOnce = false;
   navigation=true;
   arrived=false;
   instructionIndex=0;
@@ -413,7 +414,11 @@ setTimeout(() => {
   watchId=navigator.geolocation.watchPosition(updateNavigation,(err)=>{if(err.code!==3&&!arrived) alert('GPS non disponibile.')},{enableHighAccuracy:true,maximumAge:10000,timeout:30000})
 }
 
-function stopNavigation(){navigation=false;document.body.classList.remove('navigating');if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;if(userMarker){map.removeLayer(userMarker);userMarker=null}}$('stopNavigation').onclick=stopNavigation;
+function stopNavigation()
+{navigation=false;
+hasCenteredOnce = false;
+document.body.classList.remove('navigating');if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;if(userMarker){map.removeLayer(userMarker);userMarker=null}}$('stopNavigation').onclick=stopNavigation;
+
 function getArrow(m){return({TURN_LEFT:'&#8592;',TURN_RIGHT:'&#8594;',TURN_SHARP_LEFT:'&#11013;',TURN_SHARP_RIGHT:'&#10145;',TURN_SLIGHT_LEFT:'&#8598;',TURN_SLIGHT_RIGHT:'&#8599;'})[m]||'&#8593;'}
 
 function clearNavigationArtifacts(){
@@ -483,6 +488,7 @@ function scheduleReroute(lat,lon){
 }
 
 function finalizeArrival(){
+hasCenteredOnce = false;
   arrived=true;
   navigation=false;
   document.body.classList.remove('navigating');
@@ -521,7 +527,9 @@ function updateNavigation(pos){
       userMarker.setLatLng([smoothLat,smoothLon]);
     }
 
-    map.setView([smoothLat,smoothLon],18,{animate:true});
+    const zoom = hasCenteredOnce ? map.getZoom() : 18;
+map.setView([smoothLat, smoothLon], zoom, { animate: true });
+hasCenteredOnce = true;
 
     if(distance(smoothLat,smoothLon,destination.lat,destination.lon)<45){
       $('speedValue').textContent='0';
@@ -545,7 +553,9 @@ function updateNavigation(pos){
     }else{
       userMarker.setLatLng([lat,lon]);
     }
-    map.setView([lat,lon],18,{animate:true});
+    const zoom = hasCenteredOnce ? map.getZoom() : 18;
+map.setView([lat, lon], zoom, { animate: true });
+hasCenteredOnce = true;
   }
 
   lastFixTime=now;
