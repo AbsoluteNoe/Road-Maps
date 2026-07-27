@@ -184,7 +184,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&
 setTimeout(() => map.invalidateSize(), 300);
 window.addEventListener('resize', () => map.invalidateSize());
 
-let mezzo=null,nomeMezzoSelezionato='',destination=null,origin=null,route=null,routeLayer=null,startMarker=null,endMarker=null,userMarker=null,watchId=null,navigation=false,instructions=[],instructionIndex=0,lastPosition=null,offRouteCount=0,lastFixTime=0,recalcTimer=null,arrived=false;
+/*----------------------VARIABILI GLOBALI----------------------*/
+
+let mezzo=null,nomeMezzoSelezionato='',destination=null,origin=null,route=null,routeLayer=null,startMarker=null,endMarker=null,userMarker=null,watchId=null,navigation=false,instructions=[],instructionIndex=0,lastPosition=null,offRouteCount=0,lastFixTime=0,recalcTimer=null,arrived=false,traveledLayer=null,remainingLayer=null,routePoints=[],hasCenteredOnce=false;
+
+/*---------------------------------------------------------------*/
 
 const $=id=>document.getElementById(id);const fmtTime=s=>s>=3600?`${Math.floor(s/3600)} h ${Math.round(s%3600/60)} min`:`${Math.round(s/60)} min`;const distance=(a,b,c,d)=>{const R=6371e3,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,z=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))};
 function labelFor(r){return r.poi?.name||r.address?.freeformAddress||r.address?.municipality||'Luogo'}function pointFor(r){return {lat:r.position.lat,lon:r.position.lon,label:labelFor(r)}}
@@ -379,7 +383,18 @@ $('closePanel').onclick = () => {
 
 $('swapRoute').onclick=()=>{if(!origin||origin.isUser||!destination)return;const old=origin;origin={...destination,isUser:false};setDestination(old);$('originInput').value=origin.label;maybeRoute()};
 $('myLocation').onclick=()=>{if(!navigator.geolocation){alert('La geolocalizzazione non è disponibile su questo dispositivo.');return}$('originInput').value='Ricerca posizione…';navigator.geolocation.getCurrentPosition(p=>{origin={lat:p.coords.latitude,lon:p.coords.longitude,label:'La tua posizione',isUser:true};$('originInput').value='La tua posizione';maybeRoute()},e=>{alert('Attiva il GPS e consenti la geolocalizzazione per usare la tua posizione.');$('originInput').value=''} ,{enableHighAccuracy:true,timeout:12000})};
-function clearRoute(){if(routeLayer)map.removeLayer(routeLayer);if(startMarker)map.removeLayer(startMarker);routeLayer=startMarker=null;route=null;$('routeSummary').hidden=true}
+
+function clearRoute(){
+  if(routeLayer) map.removeLayer(routeLayer);
+  if(traveledLayer) map.removeLayer(traveledLayer);
+  if(remainingLayer) map.removeLayer(remainingLayer);
+  if(startMarker) map.removeLayer(startMarker);
+  routeLayer = traveledLayer = remainingLayer = startMarker = null;
+  routePoints = [];
+  route = null;
+  $('routeSummary').hidden = true;
+}
+
 async function maybeRoute(){if(!origin||!destination||!mezzo)return;clearRoute();try{const u=`https://api.tomtom.com/routing/1/calculateRoute/${origin.lat},${origin.lon}:${destination.lat},${destination.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=80&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&routeType=fastest&language=it-IT&instructionsType=text`;const d=await (await fetch(u)).json();if(!d.routes?.length)throw Error();route=d.routes[0];const points=route.legs.flatMap(l=>l.points.map(p=>[p.latitude,p.longitude]));instructions=(route.guidance?.instructions||[]).filter(i=>i.point).map(i=>({lat:i.point.latitude,lon:i.point.longitude,msg:i.message||'Prosegui dritto',street:i.street||i.signpostText||'',maneuver:i.maneuver||''}));routeLayer=L.polyline(points,{color:'#3210d8',weight:6,opacity:.9}).addTo(map);startMarker=L.marker([origin.lat,origin.lon]).addTo(map);if(endMarker)map.removeLayer(endMarker);endMarker=L.marker([destination.lat,destination.lon]).addTo(map);map.fitBounds(routeLayer.getBounds(),{padding:[50,50]});const km=Math.round(route.summary.lengthInMeters/1000);$('summaryTime').innerHTML=`${fmtTime(route.summary.travelTimeInSeconds)} <span style="color:#333;font-weight:normal">(${km} km)</span>`;
 
 $('summaryDetails').textContent = origin.isUser
@@ -403,7 +418,7 @@ function startNavigation(){
 $('startMessage').style.display = 'block';
 setTimeout(() => {
   $('startMessage').style.display = 'none';
-}, 5000);
+}, 3500); /* 3,5 secondi */
 
 /*-------------------------------------------------------*/
 
@@ -436,7 +451,73 @@ function getRouteUrl(o,d){
   return `https://api.tomtom.com/routing/1/calculateRoute/${o.lat},${o.lon}:${d.lat},${d.lon}/json?key=${TOMTOM_KEY}&travelMode=truck&vehicleMaxSpeed=80&vehicleWidth=2.5&vehicleHeight=4&vehicleLength=17&vehicleWeight=20000&routeType=fastest&language=it-IT&instructionsType=text&computeBestOrder=false`;
 }
 
+/*-------------COSTRUZIONE PERCORSO---------------------*/
+
 function buildRouteData(d){
+  route = d.routes[0];
+  routePoints = route.legs.flatMap(l => l.points.map(p => [p.latitude, p.longitude]));
+  instructions = (route.guidance?.instructions || []).filter(i => i.point).map(i => ({
+    lat: i.point.latitude,
+    lon: i.point.longitude,
+    msg: i.message || 'Prosegui dritto',
+    street: i.street || i.signpostText || '',
+    maneuver: i.maneuver || ''
+  }));
+
+  if(routeLayer) map.removeLayer(routeLayer);
+  if(traveledLayer) map.removeLayer(traveledLayer);
+  if(remainingLayer) map.removeLayer(remainingLayer);
+
+  traveledLayer = L.polyline([], {
+    color: '#9aa0a6',
+    weight: 6,
+    opacity: 0.9,
+    smoothFactor: 1
+  }).addTo(map);
+
+  remainingLayer = L.polyline(routePoints, {
+    color: '#3210d8',
+    weight: 6,
+    opacity: 0.9,
+    smoothFactor: 1
+  }).addTo(map);
+
+  routeLayer = remainingLayer;
+
+  if(startMarker) map.removeLayer(startMarker);
+  startMarker = L.marker([origin.lat, origin.lon]).addTo(map);
+
+  if(endMarker) map.removeLayer(endMarker);
+  endMarker = L.marker([destination.lat, destination.lon]).addTo(map);
+
+  map.fitBounds(remainingLayer.getBounds(), { padding: [50, 50] });
+
+  $('summaryTime').innerHTML = `${fmtTime(route.summary.travelTimeInSeconds)} <span style="color:#333;font-weight:normal">(${Math.round(route.summary.lengthInMeters/1000)} km)</span>`;
+  $('summaryDetails').textContent = origin.isUser ? 'Percorso per il tuo mezzo' : `Percorso calcolato per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
+  $('routeSummary').hidden = false;
+  $('startNavigation').classList.toggle('visible', origin.isUser);
+}
+
+function updateRouteProgress(lat, lon){
+  if(!routePoints.length || !traveledLayer || !remainingLayer) return;
+
+  let nearestIndex = 0;
+  let best = Infinity;
+
+  for(let i = 0; i < routePoints.length; i++){
+    const p = routePoints[i];
+    const d = distance(lat, lon, p[0], p[1]);
+    if(d < best){
+      best = d;
+      nearestIndex = i;
+    }
+  }
+
+  traveledLayer.setLatLngs(routePoints.slice(0, nearestIndex + 1));
+  remainingLayer.setLatLngs(routePoints.slice(nearestIndex));
+}
+
+/* function buildRouteData(d){
   route=d.routes[0];
   const points=route.legs.flatMap(l=>l.points.map(p=>[p.latitude,p.longitude]));
   instructions=(route.guidance?.instructions||[]).filter(i=>i.point).map(i=>({lat:i.point.latitude,lon:i.point.longitude,msg:i.message||'Prosegui dritto',street:i.street||i.signpostText||'',maneuver:i.maneuver||''}));
@@ -451,7 +532,9 @@ function buildRouteData(d){
   $('summaryDetails').textContent=origin.isUser?'Percorso per il tuo mezzo':`Percorso calcolato per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
   $('routeSummary').hidden=false;
   $('startNavigation').classList.toggle('visible',origin.isUser);
-}
+} */
+
+/*-------------------------------------------------------------------------------------*/
 
 async function maybeRoute(){
   if(!origin||!destination||!mezzo) return;
@@ -560,6 +643,7 @@ hasCenteredOnce = true;
 
   lastFixTime=now;
   const p=lastPosition||{lat,lon};
+updateRouteProgress(p.lat, p.lon);
   $('speedValue').textContent=Math.round(spd);
 
   const i=nextInstructionForPosition(p.lat,p.lon);
