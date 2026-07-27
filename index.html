@@ -96,8 +96,8 @@
       }
 
       .nav-bottom {
-        padding: 14px 78px;
-        min-height: 104px;
+	padding: 14px 78px calc(14px + env(safe-area-inset-bottom));
+	min-height: 104px;
       }
 
       .nav-bottom .eta {
@@ -375,6 +375,9 @@ function startNavigation(){
   offRouteCount=0;
   lastFixTime=0;
   document.body.classList.add('navigating');
+
+/*-----------------------BUONA STRADA---------------------*/
+
 $('etaText').textContent='Buona Strada!';
 $('remainText').textContent='';
 setTimeout(() => {
@@ -382,6 +385,8 @@ setTimeout(() => {
     $('etaText').textContent='';
   }
 }, 5000);
+
+/*-------------------------------------------------------*/
 
   $('summaryDetails').textContent=`Percorso per ${nomeMezzoSelezionato || 'il tuo mezzo'}`;
   $('routePanel').style.display='none';
