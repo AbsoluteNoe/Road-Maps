@@ -528,7 +528,7 @@ function updateNavigation(pos){
     }
 
     const zoom = hasCenteredOnce ? map.getZoom() : 18;
-map.setView([smoothLat, smoothLon], zoom, { animate: true });
+/* map.setView([smoothLat,smoothLon],zoom,{animate:true}); */
 hasCenteredOnce = true;
 
     if(distance(smoothLat,smoothLon,destination.lat,destination.lon)<45){
@@ -554,7 +554,7 @@ hasCenteredOnce = true;
       userMarker.setLatLng([lat,lon]);
     }
     const zoom = hasCenteredOnce ? map.getZoom() : 18;
-map.setView([lat, lon], zoom, { animate: true });
+/* map.setView([lat,lon],zoom,{animate:true}); */
 hasCenteredOnce = true;
   }
 
